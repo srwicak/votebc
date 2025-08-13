@@ -85,7 +85,7 @@ function setupEventListeners() {
 function handleLogin(e) {
     e.preventDefault();
     
-    const email = document.getElementById('email').value;
+    const nim = document.getElementById('nim').value;
     const password = document.getElementById('password').value;
     
     fetch(`${API_BASE_URL}/auth/login`, {
@@ -93,7 +93,7 @@ function handleLogin(e) {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ nim, password })
     })
     .then(response => response.json())
     .then(data => {
@@ -115,7 +115,6 @@ function handleRegister(e) {
     const formData = {
         nim: document.getElementById('nim').value,
         name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
         password: document.getElementById('password').value,
         faculty_id: document.getElementById('faculty').value,
         department_id: document.getElementById('department').value
@@ -272,7 +271,6 @@ function loadProfile() {
     .then(data => {
         if (!data.error) {
             document.getElementById('profile-name').textContent = data.name;
-            document.getElementById('profile-email').textContent = data.email;
             document.getElementById('profile-nim').textContent = data.nim;
             document.getElementById('profile-role').textContent = data.role;
             document.getElementById('profile-faculty').textContent = data.faculty_name || '-';

@@ -1,0 +1,234 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Models\UserModel;
+use App\Models\FacultyModel;
+use App\Models\DepartmentModel;
+use App\Models\ElectionModel;
+use App\Models\CandidateModel;
+
+class Admin extends BaseController{
+
+    public function addPairedCandidates()
+    {
+        try {
+            $this->requireRole(['admin']);
+            $json = $this->request->getJSON(true);
+            $electionId = $json['election_id'] ?? null;
+            $pairs = $json['pairs'] ?? [];
+            if (!$electionId || empty($pairs)) {
+                return $this->sendError('election_id dan pairs wajib diisi', 400);
+            }
+            $candidateModel = new CandidateModel();
+            $userModel = new UserModel();
+            $eligibilityModel = new \App\Models\EligibilityModel();
+            
+            // Check if voting period has started
+            $electionModel = new ElectionModel();
+            $election = $electionModel->find($electionId);
+            if (!$election) {
+                return $this->sendError('Pemilihan tidak ditemukan', 404);
+            }
+            
+            // If voting period has started, don't allow adding candidates
+            if (time() >= strtotime($election['start_time'])) {
+                return $this->sendError('Periode voting telah dimulai. Kandidat tidak dapat ditambahkan.', 403);
+            }
+            
+            // Get all existing candidates for this election to validate against duplicates
+            $existingCandidates = $candidateModel->where('election_id', $electionId)->findAll();
+            $existingUserIds = [];
+            
+            // Collect all user IDs (both candidate and vice) that are already in this election
+            foreach ($existingCandidates as $existingCandidate) {
+                if (!empty($existingCandidate['candidate_id'])) {
+                    $existingUserIds[] = $existingCandidate['candidate_id'];
+                }
+                if (!empty($existingCandidate['vice_candidate_id'])) {
+                    $existingUserIds[] = $existingCandidate['vice_candidate_id'];
+                }
+            }
+            
+            $results = [];
+            foreach ($pairs as $pair) {
+                $ketua = $userModel->where('nim', $pair['nim_ketua'] ?? '')->first();
+                $wakil = $userModel->where('nim', $pair['nim_wakil'] ?? '')->first();
+                $result = [
+                    'nim_ketua' => $pair['nim_ketua'] ?? '',
+                    'nim_wakil' => $pair['nim_wakil'] ?? '',
+                    'status' => 'success',
+                    'message' => ''
+                ];
+                if (!$ketua || !$wakil) {
+                    $result['status'] = 'error';
+                    $result['message'] = 'NIM ketua/wakil tidak ditemukan';
+                    $results[] = $result;
+                    continue;
+                }
+                if ($pair['nim_ketua'] === $pair['nim_wakil']) {
+                    $result['status'] = 'error';
+                    $result['message'] = 'NIM ketua dan wakil tidak boleh sama.';
+                    $results[] = $result;
+                    continue;
+                }
+                
+                // Validasi agar satu orang tidak bisa menjadi lebih dari satu kandidat dalam pemilihan yang sama
+                if (in_array($ketua['id'], $existingUserIds)) {
+                    $result['status'] = 'error';
+                    $result['message'] = "Ketua dengan NIM {$pair['nim_ketua']} sudah menjadi kandidat atau wakil dalam pemilihan ini.";
+                    $results[] = $result;
+                    continue;
+                }
+                
+                if (in_array($wakil['id'], $existingUserIds)) {
+                    $result['status'] = 'error';
+                    $result['message'] = "Wakil dengan NIM {$pair['nim_wakil']} sudah menjadi kandidat atau wakil dalam pemilihan ini.";
+                    $results[] = $result;
+                    continue;
+                }
+                
+                if (!$eligibilityModel->isUserEligible($electionId, $ketua['id'])) {
+                    $result['status'] = 'error';
+                    $result['message'] = "Ketua dengan NIM {$pair['nim_ketua']} tidak eligible untuk pemilihan ini.";
+                    $results[] = $result;
+                    continue;
+                }
+                if (!$eligibilityModel->isUserEligible($electionId, $wakil['id'])) {
+                    $result['status'] = 'error';
+                    $result['message'] = "Wakil dengan NIM {$pair['nim_wakil']} tidak eligible untuk pemilihan ini.";
+                    $results[] = $result;
+                    continue;
+                }
+                
+                // Tambahkan ke daftar user ID yang sudah digunakan
+                $existingUserIds[] = $ketua['id'];
+                $existingUserIds[] = $wakil['id'];
+                
+                $data = [
+                    'candidate_id' => $ketua['id'],
+                    'vice_candidate_id' => $wakil['id'],
+                    'election_id' => $electionId,
+                ];
+                if (!$candidateModel->insert($data)) {
+                    $result['status'] = 'errorx';
+                    $result['message'] = json_encode($candidateModel->errors());
+                }
+                $results[] = $result;
+            }
+            return $this->sendResponse([
+                'results' => $results
+            ]);
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+    
+    public function addCandidate()
+    {
+        try {
+            $this->requireRole(['admin']);
+
+            $data = [
+                'user_id' => $this->request->getPost('user_id'),
+                'election_id' => $this->request->getPost('election_id'),
+                // Set empty defaults for fields that will be filled by the candidate
+                'vision' => '',
+                'mission' => '',
+                'programs' => '',
+                'photo' => null,
+            ];
+
+            // Validate that the user is eligible for this election based on level
+            $electionModel = new ElectionModel();
+            $election = $electionModel->find($data['election_id']);
+            $userModel = new UserModel();
+            $user = $userModel->getUserWithAcademic($data['user_id']);
+
+            if (!$election || !$user) {
+                return $this->sendError('Election or user not found', 404);
+            }
+            
+            // Check if voting period has started
+            if (time() >= strtotime($election['start_time'])) {
+                return $this->sendError('Periode voting telah dimulai. Kandidat tidak dapat ditambahkan.', 403);
+            }
+
+            // Check eligibility based on election level
+            // if ($election['level'] === 'fakultas' && $user['faculty_id'] != $election['target_id']) {
+            //     return $this->sendError('User is not eligible for this faculty-level election', 400);
+            // }
+
+            // if ($election['level'] === 'jurusan' && $user['department_id'] != $election['target_id']) {
+            //     return $this->sendError('User is not eligible for this department-level election', 400);
+            // }
+
+            // For university level, all users are eligible (no additional check needed)
+
+            // Validate required fields (only user_id and election_id)
+            $requiredFields = ['user_id', 'election_id'];
+            foreach ($requiredFields as $field) {
+                if (empty($data[$field])) {
+                    return $this->sendError("Field {$field} harus diisi", 400);
+                }
+            }
+
+            $candidateModel = new CandidateModel();
+
+            // Check if user is already a candidate in this election
+            $existingCandidate = $candidateModel->where('user_id', $data['user_id'])
+                                               ->where('election_id', $data['election_id'])
+                                               ->first();
+
+            if ($existingCandidate) {
+                return $this->sendError('Mahasiswa ini sudah menjadi kandidat dalam pemilihan ini', 400);
+            }
+
+            // Begin transaction
+            $db = \Config\Database::connect();
+            $db->transBegin();
+
+            try {
+                // Create the candidate
+                $candidateId = $candidateModel->insert($data);
+                if (!$candidateId) {
+                    $db->transRollback();
+                    return $this->sendError('Gagal menambahkan kandidat', 500);
+                }
+
+                // Add candidate to blockchain for verification purposes
+                // $blockchain = new \App\Libraries\Blockchain();
+                // $blockchainResult = $blockchain->addCandidate(
+                //     $data['election_id'],
+                //     $user['name'],
+                //     json_encode([
+                //         'nim' => $user['nim'],
+                //         'faculty' => $user['faculty_name'] ?? '',
+                //         'department' => $user['department_name'] ?? ''
+                //     ])
+                // );
+
+                // if (!$blockchainResult['success']) {
+                //     log_message('error', 'Failed to add candidate to blockchain: ' . json_encode($blockchainResult));
+                //     // Non-critical error, continue anyway
+                // }
+
+                // Commit the transaction
+                $db->transCommit();
+
+                // Return success response
+                return $this->sendResponse([
+                    'message' => 'Kandidat berhasil ditambahkan',
+                    'candidate_id' => $candidateId,
+                    'candidate' => $candidateModel->find($candidateId),
+                    // 'blockchain_result' => $blockchainResult
+                ]);
+            } catch (\Exception $e) {
+                $db->transRollback();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+}

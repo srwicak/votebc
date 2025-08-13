@@ -23,6 +23,33 @@ class Admin extends BaseController{
             $candidateModel = new CandidateModel();
             $userModel = new UserModel();
             $eligibilityModel = new \App\Models\EligibilityModel();
+            
+            // Check if voting period has started
+            $electionModel = new ElectionModel();
+            $election = $electionModel->find($electionId);
+            if (!$election) {
+                return $this->sendError('Pemilihan tidak ditemukan', 404);
+            }
+            
+            // If voting period has started, don't allow adding candidates
+            if (time() >= strtotime($election['start_time'])) {
+                return $this->sendError('Periode voting telah dimulai. Kandidat tidak dapat ditambahkan.', 403);
+            }
+            
+            // Get all existing candidates for this election to validate against duplicates
+            $existingCandidates = $candidateModel->where('election_id', $electionId)->findAll();
+            $existingUserIds = [];
+            
+            // Collect all user IDs (both candidate and vice) that are already in this election
+            foreach ($existingCandidates as $existingCandidate) {
+                if (!empty($existingCandidate['candidate_id'])) {
+                    $existingUserIds[] = $existingCandidate['candidate_id'];
+                }
+                if (!empty($existingCandidate['vice_candidate_id'])) {
+                    $existingUserIds[] = $existingCandidate['vice_candidate_id'];
+                }
+            }
+            
             $results = [];
             foreach ($pairs as $pair) {
                 $ketua = $userModel->where('nim', $pair['nim_ketua'] ?? '')->first();
@@ -45,6 +72,22 @@ class Admin extends BaseController{
                     $results[] = $result;
                     continue;
                 }
+                
+                // Validasi agar satu orang tidak bisa menjadi lebih dari satu kandidat dalam pemilihan yang sama
+                if (in_array($ketua['id'], $existingUserIds)) {
+                    $result['status'] = 'error';
+                    $result['message'] = "Ketua dengan NIM {$pair['nim_ketua']} sudah menjadi kandidat atau wakil dalam pemilihan ini.";
+                    $results[] = $result;
+                    continue;
+                }
+                
+                if (in_array($wakil['id'], $existingUserIds)) {
+                    $result['status'] = 'error';
+                    $result['message'] = "Wakil dengan NIM {$pair['nim_wakil']} sudah menjadi kandidat atau wakil dalam pemilihan ini.";
+                    $results[] = $result;
+                    continue;
+                }
+                
                 if (!$eligibilityModel->isUserEligible($electionId, $ketua['id'])) {
                     $result['status'] = 'error';
                     $result['message'] = "Ketua dengan NIM {$pair['nim_ketua']} tidak eligible untuk pemilihan ini.";
@@ -57,6 +100,11 @@ class Admin extends BaseController{
                     $results[] = $result;
                     continue;
                 }
+                
+                // Tambahkan ke daftar user ID yang sudah digunakan
+                $existingUserIds[] = $ketua['id'];
+                $existingUserIds[] = $wakil['id'];
+                
                 $data = [
                     'candidate_id' => $ketua['id'],
                     'vice_candidate_id' => $wakil['id'],
@@ -75,6 +123,7 @@ class Admin extends BaseController{
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+    
     public function createCandidate($electionId)
     {
         $electionModel = new ElectionModel();
@@ -1070,21 +1119,6 @@ public function getCandidates($electionId = null)
                     return $this->sendError('Gagal menghapus kandidat', 500);
                 }
 
-                // Reset user role if needed
-                $userModel = new UserModel();
-                $user = $userModel->find($candidate['user_id']);
-
-                if ($user && $user['role'] === 'kandidat') {
-                    // Check if user is still a candidate in other elections
-                    $otherCandidates = $candidateModel->where('user_id', $candidate['user_id'])
-                                                     ->where('id !=', $id)
-                                                     ->findAll();
-
-                    if (empty($otherCandidates)) {
-                        $userModel->update($candidate['user_id'], ['role' => 'user']);
-                    }
-                }
-
                 $db->transCommit();
 
                 return $this->sendResponse([
@@ -1302,26 +1336,5 @@ public function getCandidates($electionId = null)
         } catch (\Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
-    }
-
-    /**
-     * Send notification to a candidate
-     *
-     * @param int $userId User ID
-     * @param int $candidateId Candidate ID
-     * @param bool $isRunningMate Whether this user is a running mate
-     * @return void
-     */
-    private function sendCandidateNotification($userId, $candidateId, $isRunningMate = false)
-    {
-        // In a real implementation, this might send an email or push notification
-        // For now, we'll just add a session flash message
-
-        $role = $isRunningMate ? 'wakil kandidat' : 'kandidat utama';
-        $message = "Anda telah ditambahkan sebagai {$role}. Silakan lengkapi profil kandidat Anda.";
-
-        // Store notification in database or session
-        session()->setFlashdata('candidate_notification', $message);
-        session()->setFlashdata('candidate_id', $candidateId);
     }
 }

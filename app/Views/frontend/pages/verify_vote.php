@@ -49,10 +49,6 @@
                             <span><?= $election['title'] ?></span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="font-medium">Kandidat:</span>
-                            <span><?= $candidate['user_name'] ?></span>
-                        </div>
-                        <div class="flex justify-between">
                             <span class="font-medium">Waktu Vote:</span>
                             <span><?= $vote['voted_at'] ?></span>
                         </div>
@@ -64,7 +60,7 @@
                     <div class="space-y-2">
                         <div class="flex justify-between">
                             <span class="font-medium">Transaction Hash:</span>
-                            <span class="text-xs md:text-sm break-all"><?= $blockchainVote['transaction_hash'] ?></span>
+                            <span class="text-xs md:text-sm break-all"><?= $blockchainVote['tx_hash'] ?></span>
                         </div>
                         <?php if (isset($blockchainVote['vote_hash'])): ?>
                         <div class="flex justify-between">
@@ -72,18 +68,20 @@
                             <span class="text-xs md:text-sm break-all"><?= $blockchainVote['vote_hash'] ?></span>
                         </div>
                         <?php endif; ?>
-                        <div class="flex justify-between">
-                            <span class="font-medium">Status:</span>
-                            <span class="<?= $blockchainVote['status'] === 'success' ? 'text-green-600' : ($blockchainVote['status'] === 'pending' ? 'text-yellow-600' : 'text-red-600') ?>">
-                                <?= ucfirst($blockchainVote['status']) ?>
-                            </span>
-                        </div>
                         <?php if (isset($blockchainVote['block_number'])): ?>
                         <div class="flex justify-between">
                             <span class="font-medium">Block Number:</span>
                             <span><?= $blockchainVote['block_number'] ?></span>
                         </div>
                         <?php endif; ?>
+                        <div class="flex justify-between">
+                            <span class="font-medium">Etherscan:</span>
+                            <a href="https://sepolia.etherscan.io/tx/<?= $blockchainVote['tx_hash'] ?>" 
+                               target="_blank" rel="noopener noreferrer"
+                               class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+                                <i class="fas fa-external-link-alt mr-1"></i> View on Etherscan
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -124,15 +122,44 @@
                     </div>
                 `;
                 
-                // Fetch verification data from API
-                fetch('<?= base_url('api/votes/verify/' . $vote['id']) ?>')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
+                // Fetch verification data from API with timeout and better error handling
+                console.log('Starting verification for vote ID:', <?= $vote['id'] ?>);
+                const apiUrl = 'http://localhost:8080/api/votes/verify/<?= $vote['id'] ?>';
+                console.log('API URL:', apiUrl);
+                
+                // Create timeout promise
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Request timeout after 10 seconds')), 10000);
+                });
+                
+                // Try fetch with timeout
+                const fetchPromise = fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                }).then(response => {
+                    console.log('Response status:', response.status);
+                    console.log('Response ok:', response.ok);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.text();
+                }).then(text => {
+                    console.log('Raw response:', text);
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                        throw new Error('Invalid JSON: ' + text.substring(0, 100));
+                    }
+                });
+                
+                Promise.race([fetchPromise, timeoutPromise])
                     .then(data => {
+                        console.log('API Response received:', data);
                         // Hide loading indicator with fade-out effect
                         loadingIndicator.classList.add('opacity-0', 'transition-opacity', 'duration-500');
                         setTimeout(() => {
@@ -144,6 +171,9 @@
                         const resultDiv = document.getElementById('verification-result');
                         resultDiv.classList.remove('hidden');
                         resultDiv.classList.add('opacity-0');
+                        
+                        console.log('Data status:', data.status);
+                        console.log('Data structure:', Object.keys(data));
                         
                         if (data.status === 'success') {
                             const verification = data.data.verification;
@@ -258,9 +288,18 @@
                                             <span class="text-sm font-medium text-gray-500">Confirmations</span>
                                             <span class="col-span-2 text-sm">${receipt.confirmations || 'N/A'}</span>
                                         </div>
-                                        <div class="grid grid-cols-3 gap-4 py-2">
+                                        <div class="grid grid-cols-3 gap-4 py-2 border-b border-gray-100">
                                             <span class="text-sm font-medium text-gray-500">Timestamp</span>
                                             <span class="col-span-2 text-sm">${receipt.timestamp ? new Date(receipt.timestamp * 1000).toLocaleString() : 'N/A'}</span>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-4 py-2">
+                                            <span class="text-sm font-medium text-gray-500">Etherscan</span>
+                                            <span class="col-span-2">
+                                                <a href="${data.data.etherscan_url}" target="_blank" rel="noopener noreferrer" 
+                                                   class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+                                                    <i class="fas fa-external-link-alt mr-1"></i> View on Etherscan
+                                                </a>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -268,6 +307,7 @@
                             
                             resultDiv.innerHTML = resultHTML;
                         } else {
+                            console.log('API error response:', data);
                             resultDiv.innerHTML = `
                                 <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
                                     <div class="flex">
@@ -278,7 +318,7 @@
                                         </div>
                                         <div class="ml-3">
                                             <p class="text-sm font-medium text-red-800">Error!</p>
-                                            <p class="text-sm text-red-700 mt-1">${data.message || 'Terjadi kesalahan saat memverifikasi vote.'}</p>
+                                            <p class="text-sm text-red-700 mt-1">${data.error || data.message || 'Terjadi kesalahan saat memverifikasi vote.'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -293,13 +333,21 @@
                     })
                     .catch(error => {
                         console.error('Verification error:', error);
+                        console.error('Error message:', error.message);
+                        console.error('Error stack:', error.stack);
                         
                         // Hide loading indicator
                         loadingIndicator.classList.add('hidden');
                         
-                        // Show error
+                        // Show detailed error
                         const resultDiv = document.getElementById('verification-result');
                         resultDiv.classList.remove('hidden');
+                        
+                        let errorMessage = 'Terjadi kesalahan saat memverifikasi vote';
+                        if (error.message) {
+                            errorMessage += ': ' + error.message;
+                        }
+                        
                         resultDiv.innerHTML = `
                             <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
                                 <div class="flex">
@@ -310,7 +358,8 @@
                                     </div>
                                     <div class="ml-3">
                                         <p class="text-sm font-medium text-red-800">Error!</p>
-                                        <p class="text-sm text-red-700 mt-1">Terjadi kesalahan saat memverifikasi vote: ${error.message}</p>
+                                        <p class="text-sm text-red-700 mt-1">${errorMessage}</p>
+                                        <p class="text-xs text-red-600 mt-2">Debug: ${error.toString()}</p>
                                     </div>
                                 </div>
                             </div>

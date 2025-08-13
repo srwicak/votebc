@@ -60,6 +60,21 @@
                             <a href="<?= base_url('/profile') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-user-circle mr-2"></i> Profil
                             </a>
+                            <?php 
+                            // Check if user is a candidate
+                            $candidateModel = new \App\Models\CandidateModel();
+                            $isCandidate = $candidateModel->select('id')
+                                ->groupStart()
+                                    ->where('candidate_id', $user['id'])
+                                    ->orWhere('vice_candidate_id', $user['id'])
+                                ->groupEnd()
+                                ->first();
+                                
+                            if ($isCandidate): ?>
+                            <a href="<?= base_url('/candidate-profile') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-id-card mr-2"></i> Profil Kandidat
+                            </a>
+                            <?php endif; ?>
                             <div class="border-t border-gray-100"></div>
                             <a href="<?= base_url('/logout') ?>" onclick="logout()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-sign-out-alt mr-2"></i> Logout
@@ -115,6 +130,21 @@
                 <a href="<?= base_url('/profile') ?>" class="text-white block px-3 py-2 rounded-md text-base font-medium">
                     <i class="fas fa-user-circle mr-1"></i> Profil
                 </a>
+                <?php 
+                // Check if user is a candidate
+                $candidateModel = new \App\Models\CandidateModel();
+                $isCandidate = $candidateModel->select('id')
+                    ->groupStart()
+                        ->where('candidate_id', $user['id'])
+                        ->orWhere('vice_candidate_id', $user['id'])
+                    ->groupEnd()
+                    ->first();
+                    
+                if ($isCandidate): ?>
+                <a href="<?= base_url('/candidate-profile') ?>" class="text-white block px-3 py-2 rounded-md text-base font-medium">
+                    <i class="fas fa-id-card mr-1"></i> Profil Kandidat
+                </a>
+                <?php endif; ?>
                 <a href="<?= base_url('/logout') ?>" onclick="logout()" class="text-white block px-3 py-2 rounded-md text-base font-medium">
                     <i class="fas fa-sign-out-alt mr-1"></i> Logout
                 </a>

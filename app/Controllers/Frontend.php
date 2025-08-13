@@ -6,8 +6,9 @@ use App\Libraries\JWT;
 
 class Frontend extends BaseController
 {
-    private $userData = null;
-    private $isLoggedIn = false;
+    // Mengubah access level dari private menjadi protected
+    protected $userData = null;
+    protected $isLoggedIn = false;
 
     public function __construct()
     {
@@ -207,13 +208,36 @@ class Frontend extends BaseController
 
         $candidates = $candidateModel->getCandidatesWithUser($electionId);
         $hasVoted = $voteModel->hasVoted($electionId, $this->userData['id']);
+        
+        // Get user's vote details if they have voted
+        $userVote = null;
+        $userBlockchainVote = null;
+        if ($hasVoted) {
+            $userVote = $voteModel->where('election_id', $electionId)
+                                  ->where('voter_id', $this->userData['id'])
+                                  ->first();
+            if ($userVote) {
+                $blockchainModel = new \App\Models\BlockchainTransactionModel();
+                $userBlockchainVote = $blockchainModel->where('vote_id', $userVote['id'])->first();
+                
+                // Parse vote_hash from JSON data if available
+                if ($userBlockchainVote && !empty($userBlockchainVote['data'])) {
+                    $blockchainData = json_decode($userBlockchainVote['data'], true);
+                    if (isset($blockchainData['vote_hash'])) {
+                        $userBlockchainVote['vote_hash'] = $blockchainData['vote_hash'];
+                    }
+                }
+            }
+        }
 
         $data = [
             'title' => $election['title'] . ' - E-Voting BEM',
             'page' => 'election-detail',
             'election' => $election,
             'candidates' => $candidates,
-            'hasVoted' => $hasVoted
+            'hasVoted' => $hasVoted,
+            'userVote' => $userVote,
+            'userBlockchainVote' => $userBlockchainVote
         ];
         return $this->render('frontend/pages/election_detail', $data);
     }
@@ -356,7 +380,7 @@ class Frontend extends BaseController
         // If vote ID is provided, get vote details
         if ($voteId) {
             $voteModel = new \App\Models\VoteModel();
-            $blockchainModel = new \App\Models\BlockchainVoteModel();
+            $blockchainModel = new \App\Models\BlockchainTransactionModel();
             
             $vote = $voteModel->find($voteId);
             $blockchainVote = $blockchainModel->where('vote_id', $voteId)->first();
@@ -364,13 +388,11 @@ class Frontend extends BaseController
             if ($vote && $blockchainVote) {
                 $data['vote'] = $vote;
                 $data['blockchainVote'] = $blockchainVote;
-                
+
                 // Get election and candidate details
                 $electionModel = new \App\Models\ElectionModel();
-                $candidateModel = new \App\Models\CandidateModel();
                 
                 $data['election'] = $electionModel->find($vote['election_id']);
-                $data['candidate'] = $candidateModel->getCandidateWithDetails($vote['candidate_id']);
             }
         }
         

@@ -27,7 +27,7 @@
                     <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                         <h5 class="font-semibold mb-0"><i class="fas fa-list mr-2"></i> Daftar Fakultas</h5>
                         <button class="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
-                                data-bs-toggle="modal" data-bs-target="#createFacultyModal">
+                                onclick="openCreateFacultyModal()">
                             <i class="fas fa-plus mr-2"></i> Tambah Fakultas
                         </button>
                     </div>
@@ -80,7 +80,7 @@
                     <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                         <h5 class="font-semibold mb-0"><i class="fas fa-list mr-2"></i> Daftar Jurusan</h5>
                         <button class="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
-                                data-bs-toggle="modal" data-bs-target="#createDepartmentModal">
+                                onclick="openCreateDepartmentModal()">
                             <i class="fas fa-plus mr-2"></i> Tambah Jurusan
                         </button>
                     </div>
@@ -135,7 +135,7 @@
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
                     <h5 class="text-lg font-semibold text-gray-900" id="createFacultyModalLabel">Tambah Fakultas Baru</h5>
-                    <button type="button" class="text-gray-400 hover:text-gray-500" data-bs-dismiss="modal" aria-label="Close">
+                    <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('createFacultyModal')" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -152,7 +152,7 @@
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm" onclick="createFaculty()">Simpan</button>
-                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="closeModal('createFacultyModal')">Batal</button>
             </div>
         </div>
     </div>
@@ -167,7 +167,7 @@
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
                     <h5 class="text-lg font-semibold text-gray-900" id="editFacultyModalLabel">Edit Fakultas</h5>
-                    <button type="button" class="text-gray-400 hover:text-gray-500" data-bs-dismiss="modal" aria-label="Close">
+                    <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('editFacultyModal')" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -185,7 +185,7 @@
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm" onclick="updateFaculty()">Simpan</button>
-                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="closeModal('editFacultyModal')">Batal</button>
             </div>
         </div>
     </div>
@@ -200,7 +200,7 @@
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
                     <h5 class="text-lg font-semibold text-gray-900" id="createDepartmentModalLabel">Tambah Jurusan Baru</h5>
-                    <button type="button" class="text-gray-400 hover:text-gray-500" data-bs-dismiss="modal" aria-label="Close">
+                    <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('createDepartmentModal')" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -226,7 +226,7 @@
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm" onclick="createDepartment()">Simpan</button>
-                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="closeModal('createDepartmentModal')">Batal</button>
             </div>
         </div>
     </div>
@@ -241,7 +241,7 @@
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
                     <h5 class="text-lg font-semibold text-gray-900" id="editDepartmentModalLabel">Edit Jurusan</h5>
-                    <button type="button" class="text-gray-400 hover:text-gray-500" data-bs-dismiss="modal" aria-label="Close">
+                    <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('editDepartmentModal')" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -268,7 +268,7 @@
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm" onclick="updateDepartment()">Simpan</button>
-                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="closeModal('editDepartmentModal')">Batal</button>
             </div>
         </div>
     </div>
@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Remove active class from all tabs
             tabs.forEach(t => {
-                t.classList.remove('text-primary', 'border-b-2', 'border-primary');
+                t.classList.remove('text-primary', 'border-b-2', 'border-primary', 'active-tab');
                 t.classList.add('text-gray-500');
             });
             
@@ -299,49 +299,37 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add active class to the clicked tab
             this.classList.remove('text-gray-500');
-            this.classList.add('text-primary', 'border-b-2', 'border-primary');
+            this.classList.add('text-primary', 'border-b-2', 'border-primary', 'active-tab');
         });
     });
-    
-    // Setup modal functionality
-    setupModals();
 });
 
-function setupModals() {
-    // Get all modals
-    const modals = document.querySelectorAll('[id$="Modal"]');
-    
-    // Get all buttons that open modals
-    const btns = document.querySelectorAll('[data-bs-toggle="modal"]');
-    
-    // Get all elements that close modals
-    const closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
-    
-    // When the user clicks a button, open the corresponding modal
-    btns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const modalId = this.getAttribute('data-bs-target');
-            document.querySelector(modalId).classList.remove('hidden');
-        });
-    });
-    
-    // When the user clicks on a close button, close the modal
-    closeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const modal = this.closest('.fixed');
-            modal.classList.add('hidden');
-        });
-    });
-    
-    // When the user clicks anywhere outside of a modal, close it
-    window.addEventListener('click', function(event) {
-        modals.forEach(modal => {
-            if (event.target === modal) {
-                modal.classList.add('hidden');
-            }
-        });
-    });
+// Modal functions
+function openCreateFacultyModal() {
+    document.getElementById('createFacultyModal').classList.remove('hidden');
+    // Clear form
+    document.getElementById('createFacultyForm').reset();
 }
+
+function openCreateDepartmentModal() {
+    document.getElementById('createDepartmentModal').classList.remove('hidden');
+    // Clear form
+    document.getElementById('createDepartmentForm').reset();
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modals = document.querySelectorAll('[id$="Modal"]');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+});
 
 function createFaculty() {
     const form = document.getElementById('createFacultyForm');
@@ -377,7 +365,7 @@ function createFaculty() {
     });
     
     // Close the modal
-    document.getElementById('createFacultyModal').classList.add('hidden');
+    closeModal('createFacultyModal');
 }
 
 function editFaculty(facultyId) {
@@ -444,7 +432,7 @@ function updateFaculty() {
     });
     
     // Close the modal
-    document.getElementById('editFacultyModal').classList.add('hidden');
+    closeModal('editFacultyModal');
 }
 
 function deleteFaculty(facultyId) {
@@ -507,7 +495,7 @@ function createDepartment() {
     });
     
     // Close the modal
-    document.getElementById('createDepartmentModal').classList.add('hidden');
+    closeModal('createDepartmentModal');
 }
 
 function editDepartment(departmentId) {
@@ -576,7 +564,7 @@ function updateDepartment() {
     });
     
     // Close the modal
-    document.getElementById('editDepartmentModal').classList.add('hidden');
+    closeModal('editDepartmentModal');
 }
 
 function deleteDepartment(departmentId) {
@@ -604,3 +592,119 @@ function deleteDepartment(departmentId) {
         alert('Terjadi kesalahan saat menghapus jurusan');
     });
 }
+</script>
+
+<!-- Debug Script for Academic Page -->
+<script>
+console.log('Academic page script loading...');
+
+// Define functions globally immediately
+window.openCreateFacultyModal = function() {
+    console.log('openCreateFacultyModal called');
+    const modal = document.getElementById('createFacultyModal');
+    const form = document.getElementById('createFacultyForm');
+    
+    if (modal && form) {
+        modal.classList.remove('hidden');
+        form.reset();
+        console.log('Faculty modal opened successfully');
+    } else {
+        console.error('Faculty modal or form not found');
+    }
+};
+
+window.openCreateDepartmentModal = function() {
+    console.log('openCreateDepartmentModal called');
+    const modal = document.getElementById('createDepartmentModal');
+    const form = document.getElementById('createDepartmentForm');
+    
+    if (modal && form) {
+        modal.classList.remove('hidden');
+        form.reset();
+        console.log('Department modal opened successfully');
+    } else {
+        console.error('Department modal or form not found');
+    }
+};
+
+window.closeModal = function(modalId) {
+    console.log('closeModal called for:', modalId);
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+        console.log('Modal closed successfully');
+    } else {
+        console.error('Modal not found:', modalId);
+    }
+};
+
+window.editFaculty = function(facultyId) {
+    console.log('editFaculty called for ID:', facultyId);
+    alert('Edit Faculty function called for ID: ' + facultyId);
+};
+
+window.deleteFaculty = function(facultyId) {
+    console.log('deleteFaculty called for ID:', facultyId);
+    if (confirm('Apakah Anda yakin ingin menghapus fakultas ini?')) {
+        alert('Delete Faculty function called for ID: ' + facultyId);
+    }
+};
+
+window.editDepartment = function(departmentId) {
+    console.log('editDepartment called for ID:', departmentId);
+    alert('Edit Department function called for ID: ' + departmentId);
+};
+
+window.deleteDepartment = function(departmentId) {
+    console.log('deleteDepartment called for ID:', departmentId);
+    if (confirm('Apakah Anda yakin ingin menghapus jurusan ini?')) {
+        alert('Delete Department function called for ID: ' + departmentId);
+    }
+};
+
+console.log('Academic page functions defined globally');
+
+// Setup tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, testing tab functionality...');
+    
+    // Setup tab switching
+    const tabs = document.querySelectorAll('[id^="tab-"]');
+    console.log('Found tabs:', tabs.length);
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Tab clicked:', this.id);
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            tabs.forEach(t => {
+                t.classList.remove('text-primary', 'border-b-2', 'border-primary', 'active-tab');
+                t.classList.add('text-gray-500');
+            });
+            
+            // Show the selected tab content
+            const targetId = this.getAttribute('data-target');
+            console.log('Target:', targetId);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                targetElement.classList.remove('hidden');
+                console.log('Tab content shown successfully');
+            } else {
+                console.error('Target element not found:', targetId);
+            }
+            
+            // Add active class to the clicked tab
+            this.classList.remove('text-gray-500');
+            this.classList.add('text-primary', 'border-b-2', 'border-primary', 'active-tab');
+        });
+    });
+    
+    console.log('Tab functionality setup complete');
+});
+</script>

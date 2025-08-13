@@ -11,7 +11,7 @@ class Statistics extends BaseController
     public function getElectionResults($electionId)
     {
         try {
-            $this->requireAuth();
+
 
             $electionModel = new ElectionModel();
             $voteModel = new VoteModel();
@@ -41,6 +41,7 @@ class Statistics extends BaseController
 
                 $formattedResults[] = [
                     'candidate' => $candidate,
+                    'candidate_id' => $result['candidate_id'],  // Add candidate_id directly from the result
                     'vote_count' => (int)$result['vote_count'],
                     'percentage' => round($percentage, 2)
                 ];

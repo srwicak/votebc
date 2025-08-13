@@ -87,14 +87,14 @@
                 
                 <?php if (!empty($runningMate)): ?>
                 <div class="border-t border-gray-200 p-6 text-center">
-                    <h5 class="font-semibold mb-3">Running Mate (Wakil)</h5>
+                    <h5 class="font-semibold mb-3">Wakil Kandidat</h5>
                     <?php if (!empty($runningMate['photo'])): ?>
                         <img src="<?= $runningMate['photo'] ?>"
-                             alt="Running Mate Photo"
+                             alt="Vice Candidate Photo"
                              class="rounded-full mx-auto mb-4 w-24 h-24 object-cover">
                     <?php else: ?>
                         <img src="<?= base_url('assets/img/user-placeholder.svg') ?>"
-                             alt="Running Mate Photo"
+                             alt="Vice Candidate Photo"
                              class="rounded-full mx-auto mb-4 w-24 h-24 object-cover">
                     <?php endif; ?>
                     <h4 class="text-lg font-semibold mb-1"><?= esc($runningMate['name']) ?></h4>

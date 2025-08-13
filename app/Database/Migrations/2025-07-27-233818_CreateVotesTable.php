@@ -26,19 +26,23 @@ class CreateVotesTable extends Migration
                 'unsigned'   => true,
             ],
             'candidate_id' => [
-                'type'       => 'INTEGER',
-                'constraint' => 11,
-                'unsigned'   => true,
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+                'null' => false,
             ],
             'voted_at' => [
                 'type' => 'DATETIME',
+            ],
+            'vote_hash' => [
+                'type' => 'VARCHAR',
+                'constraint' => 128,
+                'null' => true,
             ],
         ]);
         $this->forge->addKey('id', true);
         $this->forge->addUniqueKey(['election_id', 'voter_id']);
         $this->forge->addForeignKey('election_id', 'elections', 'id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('voter_id', 'users', 'id', 'CASCADE', 'CASCADE');
-        $this->forge->addForeignKey('candidate_id', 'candidates', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('votes', true);
     }
 

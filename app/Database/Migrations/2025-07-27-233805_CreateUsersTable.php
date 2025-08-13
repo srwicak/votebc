@@ -64,7 +64,7 @@ class CreateUsersTable extends Migration
             ],
         ]);
         $this->forge->addKey('id', true);
-        // Only add unique keys for nim and email, not regular keys
+        // Only add unique keys for nim, not regular keys
         $this->forge->addUniqueKey(['nim']);
         $this->forge->addForeignKey('faculty_id', 'faculties', 'id', 'SET NULL', 'CASCADE');
         $this->forge->addForeignKey('department_id', 'departments', 'id', 'SET NULL', 'CASCADE');

@@ -8,13 +8,13 @@ class VoteModel extends Model
 {
     protected $table = 'votes';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['election_id', 'voter_id', 'candidate_id', 'voted_at'];
+    protected $allowedFields = ['election_id', 'voter_id', 'candidate_id', 'candidate_hash', 'voted_at', 'vote_hash'];
     protected $useTimestamps = false;
 
     protected $validationRules = [
         'election_id' => 'required|is_natural_no_zero',
         'voter_id' => 'required|is_natural_no_zero',
-        'candidate_id' => 'required|is_natural_no_zero'
+        'candidate_id' => 'required'
     ];
 
     public function hasVoted($electionId, $voterId)
@@ -235,7 +235,8 @@ class VoteModel extends Model
         $encryptedData = [
             'election_id' => $data['election_id'],
             'voter_id' => $data['voter_id'],
-            'candidate_id' => $encryptor->encrypt($data['candidate_id']),
+            'candidate_id' => $data['candidate_id'], // Store the actual candidate ID for vote counting
+            'candidate_hash' => $encryptor->hash($data['candidate_id']), // Store hash for verification purposes
             'voted_at' => $data['voted_at'],
             'vote_hash' => $encryptor->hash([
                 'election_id' => $data['election_id'],

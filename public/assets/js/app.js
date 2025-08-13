@@ -28,10 +28,10 @@ function setupEventListeners() {
     }
     
     // Vote buttons
-    const voteButtons = document.querySelectorAll('.vote-button');
-    voteButtons.forEach(button => {
-        button.addEventListener('click', handleVote);
-    });
+    // const voteButtons = document.querySelectorAll('.vote-button');
+    // voteButtons.forEach(button => {
+    //     button.addEventListener('click', handleVote);
+    // });
 }
 
 function handleLogin(e) {
@@ -68,7 +68,7 @@ function handleLogin(e) {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({token: result.token})
+                body: JSON.stringify({token: result.data.token})
             })
             .then(response => {
                 console.log('Session set response:', response);
@@ -246,47 +246,47 @@ function loadDepartments() {
     }, 100);
 }
 
-function handleVote(e) {
-    const button = e.target.closest('.vote-button');
-    const electionId = button.dataset.election;
-    const candidateId = button.dataset.candidate;
+// function handleVote(e) {
+//     const button = e.target.closest('.vote-button');
+//     const electionId = button.dataset.election;
+//     const candidateId = button.dataset.candidate;
     
-    if (!confirm('Apakah Anda yakin ingin memberikan vote?')) {
-        return;
-    }
+//     if (!confirm('Apakah Anda yakin ingin memberikan vote?')) {
+//         return;
+//     }
     
-    button.disabled = true;
-    button.innerHTML = '<span class="loading"></span> Memproses...';
+//     button.disabled = true;
+//     button.innerHTML = '<span class="loading"></span> Memproses...';
     
-    fetch(`${API_BASE_URL}/votes`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${AUTH_TOKEN}`
-        },
-        body: JSON.stringify({
-            election_id: electionId,
-            candidate_id: candidateId
-        })
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.error) {
-            alert('Error: ' + result.error);
-            button.disabled = false;
-            button.innerHTML = '<i class="fas fa-vote-yea"></i> Vote';
-        } else {
-            alert('Vote berhasil dicatat!');
-            location.reload();
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Terjadi kesalahan saat voting');
-        button.disabled = false;
-        button.innerHTML = '<i class="fas fa-vote-yea"></i> Vote';
-    });
-}
+//     fetch(`${API_BASE_URL}/votes`, {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'Authorization': `Bearer ${AUTH_TOKEN}`
+//         },
+//         body: JSON.stringify({
+//             election_id: electionId,
+//             candidate_id: candidateId
+//         })
+//     })
+//     .then(response => response.json())
+//     .then(result => {
+//         if (result.error) {
+//             alert('Error: ' + result.error);
+//             button.disabled = false;
+//             button.innerHTML = '<i class="fas fa-vote-yea"></i> Vote';
+//         } else {
+//             alert('Vote berhasil dicatat!');
+//             location.reload();
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//         alert('Terjadi kesalahan saat voting');
+//         button.disabled = false;
+//         button.innerHTML = '<i class="fas fa-vote-yea"></i> Vote';
+//     });
+// }
 
 function loadPageSpecificScripts() {
     // Load scripts based on current page
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
 window.App = {
     handleLogin: handleLogin,
     handleRegister: handleRegister,
-    handleVote: handleVote,
+    // handleVote: handleVote,
     logout: logout,
     checkAuth: checkAuth
 };

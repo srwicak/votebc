@@ -22,7 +22,8 @@ class Encryptor
         if (is_array($data) || is_object($data)) {
             $data = json_encode($data);
         }
-        
+        // Pastikan data bertipe string
+        $data = (string) $data;
         return base64_encode($this->encrypter->encrypt($data));
     }
     

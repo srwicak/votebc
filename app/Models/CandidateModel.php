@@ -39,10 +39,9 @@ class CandidateModel extends Model
     public function getCandidateWithDetails($candidateRowId)
     {
         return $this->select('candidates.*,
-                            candidate.name as candidate_name, candidate.email as candidate_email, candidate.nim as candidate_nim,
+                            candidate.name as candidate_name, candidate.nim as candidate_nim,
                             candidate_department.name as candidate_department_name, candidate_faculty.name as candidate_faculty_name,
                             vice_candidate.name as vice_candidate_name,
-                            vice_candidate.email as vice_candidate_email,
                             vice_candidate.nim as vice_candidate_nim,
                             vice_candidate_department.name as vice_candidate_department_name,
                             vice_candidate_faculty.name as vice_candidate_faculty_name')
@@ -65,9 +64,9 @@ class CandidateModel extends Model
     public function getCandidatePairWithDetails($candidateRowId)
     {
         return $this->select('candidates.*,
-                            candidate.name as candidate_name, candidate.email as candidate_email, candidate.nim as candidate_nim,
+                            candidate.name as candidate_name, candidate.nim as candidate_nim,
                             candidate_department.name as candidate_department_name, candidate_faculty.name as candidate_faculty_name,
-                            vice_candidate.name as vice_candidate_name, vice_candidate.email as vice_candidate_email, vice_candidate.nim as vice_candidate_nim,
+                            vice_candidate.name as vice_candidate_name, vice_candidate.nim as vice_candidate_nim,
                             vice_candidate_department.name as vice_candidate_department_name, vice_candidate_faculty.name as vice_candidate_faculty_name')
                    ->join('users as candidate', 'candidate.id = candidates.candidate_id')
                    ->join('departments as candidate_department', 'candidate_department.id = candidate.department_id', 'left')

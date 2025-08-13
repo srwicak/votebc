@@ -14,7 +14,8 @@ class BlockchainTransactionModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'election_id', 'vote_id', 'tx_hash', 'tx_type', 'status', 
-        'block_number', 'gas_used', 'gas_price', 'data', 'created_at', 'updated_at'
+        'block_number', 'gas_used', 'gas_price', 'data', 'created_at', 'updated_at',
+        'blockchain_election_id'
     ];
 
     // Dates
@@ -42,9 +43,10 @@ class BlockchainTransactionModel extends Model
      * @param string $txHash Transaction hash
      * @param string $txType Transaction type
      * @param array $data Additional data
+     * @param int|null $blockchainElectionId Unique blockchain election ID
      * @return int|false ID of the inserted record or false on failure
      */
-    public function createTransaction($electionId, $voteId, $txHash, $txType, $data = null)
+    public function createTransaction($electionId, $voteId, $txHash, $txType, $data = null, $blockchainElectionId = null)
     {
         $transaction = [
             'election_id' => $electionId,
@@ -55,6 +57,11 @@ class BlockchainTransactionModel extends Model
             'data'        => $data ? json_encode($data) : null,
             'created_at'  => date('Y-m-d H:i:s')
         ];
+        
+        // Add blockchain_election_id if provided
+        if ($blockchainElectionId !== null) {
+            $transaction['blockchain_election_id'] = $blockchainElectionId;
+        }
         
         $this->insert($transaction);
         return $this->getInsertID();

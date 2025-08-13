@@ -42,6 +42,20 @@ abstract class BaseController extends Controller
      * The creation of dynamic property is deprecated in PHP 8.2.
      */
     // protected $session;
+    
+    /**
+     * User data from session
+     * 
+     * @var array|null
+     */
+    protected $userData = null;
+    
+    /**
+     * Flag if user is logged in
+     * 
+     * @var bool
+     */
+    protected $isLoggedIn = false;
 
     /**
      * @return void
@@ -53,20 +67,43 @@ abstract class BaseController extends Controller
 
         // Preload any models, libraries, etc, here.
         $this->session = \Config\Services::session();
+        
+        // Load user data from session if available
+        if (session()->has('user_id')) {
+            $userModel = new \App\Models\UserModel();
+            $this->userData = $userModel->find(session()->get('user_id'));
+            $this->isLoggedIn = (bool) $this->userData;
+        }
     }
 
     protected function sendResponse($data, $code = 200)
     {
+        $response = [
+            'status' => 'success',
+            'data' => $data
+        ];
+        
         return $this->response
             ->setStatusCode($code)
-            ->setJSON($data);
+            ->setHeader('Content-Type', 'application/json')
+            ->setHeader('Access-Control-Allow-Origin', '*')
+            ->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+            ->setJSON($response);
     }
 
     protected function sendError($message, $code = 400)
     {
         return $this->response
             ->setStatusCode($code)
-            ->setJSON(['error' => $message]);
+            ->setHeader('Content-Type', 'application/json')
+            ->setHeader('Access-Control-Allow-Origin', '*')
+            ->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+            ->setJSON([
+                'status' => 'error',
+                'error' => $message
+            ]);
     }
 
     protected function getCurrentUser()

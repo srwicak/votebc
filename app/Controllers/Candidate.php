@@ -21,7 +21,7 @@ class Candidate extends BaseController
             
             // Get candidate information for this user
             $candidateModel = new CandidateModel();
-            $candidates = $candidateModel->where('user_id', $user['id'])->findAll();
+            $candidates = $candidateModel->where('candidate_id', $user['id'])->findAll();
             
             // If user is not a candidate, redirect to profile
             if (empty($candidates)) {
@@ -62,9 +62,9 @@ class Candidate extends BaseController
             
             // Get running mate details if exists
             $runningMate = null;
-            if (!empty($candidate['running_mate_id'])) {
+            if (!empty($candidate['vice_candidate_id'])) {
                 $userModel = new UserModel();
-                $runningMate = $userModel->getUserWithAcademic($candidate['running_mate_id']);
+                $runningMate = $userModel->getUserWithAcademic($candidate['vice_candidate_id']);
             }
             
             $data = [
@@ -100,7 +100,7 @@ class Candidate extends BaseController
             $candidate = $candidateModel->find($id);
             
             // Validate that this candidate belongs to the current user
-            if (!$candidate || $candidate['user_id'] != $user['id']) {
+            if (!$candidate || $candidate['candidate_id'] != $user['id']) {
                 return redirect()->to('/profile')->with('error', 'Anda tidak memiliki akses untuk mengubah kandidat ini');
             }
             
@@ -130,17 +130,17 @@ class Candidate extends BaseController
             
             // If this is a paired candidate and the current user is the primary candidate,
             // check if running mate also needs to update their information
-            if (!empty($candidate['running_mate_id']) && $candidate['user_id'] == $user['id']) {
+            if (!empty($candidate['vice_candidate_id']) && $candidate['candidate_id'] == $user['id']) {
                 // Notify the running mate to complete their information if needed
                 $userModel = new UserModel();
-                $runningMate = $userModel->find($candidate['running_mate_id']);
+                $runningMate = $userModel->find($candidate['vice_candidate_id']);
                 
                 if ($runningMate) {
                     // Store notification for running mate in database or session
                     // This is a simplified implementation - in a real app, you might use a notification system
                     $notificationModel = new \App\Models\NotificationModel();
                     $notificationModel->save([
-                        'user_id' => $candidate['running_mate_id'],
+                        'user_id' => $candidate['vice_candidate_id'],
                         'message' => 'Anda telah ditambahkan sebagai wakil kandidat. Silakan lengkapi profil kandidat Anda.',
                         'link' => '/candidate/profile',
                         'is_read' => 0,

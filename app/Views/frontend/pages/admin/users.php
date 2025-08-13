@@ -225,22 +225,58 @@
                     
                     <div class="flex flex-wrap -mx-3">
                         <div class="w-full md:w-1/2 px-3 mb-4">
-                            <label for="edit_faculty_id" class="block text-sm font-medium text-gray-700 mb-1">Fakultas</label>
-                            <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" id="edit_faculty_id" name="faculty_id">
-                                <option value="">Pilih Fakultas</option>
-                                <?php
-                                $facultyModel = new \App\Models\FacultyModel();
-                                $faculties = $facultyModel->findAll();
-                                foreach ($faculties as $faculty): ?>
-                                    <option value="<?= $faculty['id'] ?>"><?= esc($faculty['name']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Fakultas</label>
+                            <div id="faculty_display_container">
+                                <div class="flex items-center">
+                                    <span id="faculty_display_text" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">-</span>
+                                    <button type="button" class="ml-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors" onclick="editFaculty()">
+                                        <i class="fas fa-edit"></i> Ubah
+                                    </button>
+                                </div>
+                                <div id="faculty_edit_container" class="hidden">
+                                    <div class="flex items-center">
+                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" id="edit_faculty_id" name="faculty_id">
+                                            <option value="">Pilih Fakultas</option>
+                                            <?php
+                                            $facultyModel = new \App\Models\FacultyModel();
+                                            $faculties = $facultyModel->findAll();
+                                            foreach ($faculties as $faculty): ?>
+                                                <option value="<?= $faculty['id'] ?>"><?= esc($faculty['name']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <button type="button" class="ml-2 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors" onclick="saveFaculty()">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button type="button" class="ml-1 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition-colors" onclick="cancelFacultyEdit()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="w-full md:w-1/2 px-3 mb-4">
-                            <label for="edit_department_id" class="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
-                            <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" id="edit_department_id" name="department_id">
-                                <option value="">Pilih Jurusan</option>
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
+                            <div id="department_display_container">
+                                <div class="flex items-center">
+                                    <span id="department_display_text" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">-</span>
+                                    <button type="button" class="ml-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors" onclick="editDepartment()">
+                                        <i class="fas fa-edit"></i> Ubah
+                                    </button>
+                                </div>
+                                <div id="department_edit_container" class="hidden">
+                                    <div class="flex items-center">
+                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" id="edit_department_id" name="department_id">
+                                            <option value="">Pilih Jurusan</option>
+                                        </select>
+                                        <button type="button" class="ml-2 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors" onclick="saveDepartment()">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button type="button" class="ml-1 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition-colors" onclick="cancelDepartmentEdit()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -320,15 +356,6 @@ function setupModal() {
         });
     }
     
-    // Setup faculty-department relationship in the edit modal
-    const editFacultySelect = document.getElementById('edit_faculty_id');
-    if (editFacultySelect) {
-        editFacultySelect.addEventListener('change', function() {
-            const facultyId = this.value;
-            loadEditDepartments(facultyId);
-        });
-    }
-    
     // Setup edit modal functionality
     setupEditModal();
 }
@@ -376,8 +403,11 @@ function createUser() {
     })
     .then(response => response.json())
     .then(result => {
-        if (result.error) {
-            alert('Error: ' + result.error);
+        console.log('Create result:', result); // Debug log
+        
+        if (result.error || result.status === 'error') {
+            let errorMsg = result.error || result.message;
+            alert('Error: ' + errorMsg);
         } else {
             alert('User berhasil ditambahkan!');
             location.reload();
@@ -393,37 +423,64 @@ function createUser() {
 }
 
 function editUser(userId) {
+    // Debug token
+    const token = '<?= session()->get('auth_token') ?>';
+    console.log('Auth token:', token ? 'exists' : 'missing');
+    
     // Fetch specific user data
     fetch(`<?= base_url('/api/admin/users/') ?>${userId}`, {
         headers: {
             'Authorization': 'Bearer <?= session()->get('auth_token') ?>'
         }
     })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                if (response.status === 401) {
+                    alert('Token autentikasi tidak valid. Silakan login ulang.');
+                    window.location.href = '<?= base_url('login') ?>';
+                    return;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(result => {
-            if (result.error) {
-                alert('Error: ' + result.error);
+            console.log('API Response:', result); // Debug log
+            
+            if (result.error || result.status === 'error') {
+                alert('Error: ' + (result.error || result.message));
                 return;
             }
             
-            const user = result;
-            if (!user) {
-                alert('User tidak ditemukan' );
+            // Get user data from response
+            let user = result.data || result;
+            
+            if (!user || !user.id) {
+                alert('User tidak ditemukan');
                 return;
             }
             
-            // Populate the edit form with user data
-            document.getElementById('edit_user_id').value = user.id;
-            document.getElementById('edit_nim').value = user.nim;
-            document.getElementById('edit_name').value = user.name;
-            document.getElementById('edit_faculty_id').value = user.faculty_id || '';
-            document.getElementById('edit_role').value = user.role;
-            document.getElementById('edit_status').value = user.status;
+            console.log('User data:', user); // Debug log
             
-            // Load departments for the faculty
-            if (user.faculty_id) {
-                loadEditDepartments(user.faculty_id, user.department_id);
+            // Populate the edit form with user data - handle undefined values
+            document.getElementById('edit_user_id').value = user.id || '';
+            document.getElementById('edit_nim').value = user.nim || '';
+            document.getElementById('edit_name').value = user.name || '';
+            document.getElementById('edit_role').value = user.role || 'mahasiswa';
+            
+            // Only set status if the field exists (it's commented out in the form)
+            const statusField = document.getElementById('edit_status');
+            if (statusField) {
+                statusField.value = user.status || 'active';
             }
+            
+            // Set faculty and department display
+            updateFacultyDisplay(user.faculty_name || '-', user.faculty_id);
+            updateDepartmentDisplay(user.department_name || '-', user.department_id);
+            
+            // Store original faculty data for cancellation
+            window.currentUser = user;
             
             // Show the edit modal
             document.getElementById('editUserModal').classList.remove('hidden');
@@ -431,41 +488,6 @@ function editUser(userId) {
         .catch(error => {
             console.error('Error:', error);
             alert('Terjadi kesalahan saat mengambil data user');
-        });
-}
-
-function loadEditDepartments(facultyId, selectedDepartmentId = null) {
-    const departmentSelect = document.getElementById('edit_department_id');
-    
-    if (!facultyId) {
-        departmentSelect.innerHTML = '<option value="">Pilih Jurusan</option>';
-        return;
-    }
-    
-    departmentSelect.innerHTML = '<option value="">Loading...</option>';
-    
-    fetch(`<?= base_url('/api/departments/') ?>${facultyId}`)
-        .then(response => response.json())
-        .then(departments => {
-            departmentSelect.innerHTML = '<option value="">Pilih Jurusan</option>';
-            
-            if (Array.isArray(departments)) {
-                departments.forEach(dept => {
-                    const option = document.createElement('option');
-                    option.value = dept.id;
-                    option.textContent = dept.name;
-                    if (dept.id == selectedDepartmentId) {
-                        option.selected = true;
-                    }
-                    departmentSelect.appendChild(option);
-                });
-            } else {
-                departmentSelect.innerHTML = '<option value="">Error: Invalid data format</option>';
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching departments:', error);
-            departmentSelect.innerHTML = '<option value="">Error loading departments</option>';
         });
 }
 
@@ -483,22 +505,21 @@ function updateUser() {
     const nim = document.getElementById('edit_nim').value;
     const name = document.getElementById('edit_name').value;
     const password = document.getElementById('edit_password').value;
-    const faculty_id = document.getElementById('edit_faculty_id').value;
-    const department_id = document.getElementById('edit_department_id').value;
     const role = document.getElementById('edit_role').value;
-    const status = document.getElementById('edit_status').value;
+    
+    // Only get status if the field exists (it's commented out in the form)
+    const statusField = document.getElementById('edit_status');
+    const status = statusField ? statusField.value : null;
 
     // Hanya tambahkan field yang tidak kosong (kecuali password, karena bisa kosong)
     if (nim) data.nim = nim;
     if (name) data.name = name;
     if (password) data.password = password; // Password boleh kosong, tapi jika ada maka kirim
-    if (faculty_id) data.faculty_id = faculty_id;
-    if (department_id) data.department_id = department_id;
     if (role) data.role = role;
     if (status) data.status = status;
 
     // Validasi minimal data yang harus ada
-    if (!data.nim || !data.name || !data.role ) {
+    if (!data.nim || !data.name || !data.role) {
         alert('NIM, Nama, Role harus diisi');
         return;
     }
@@ -514,10 +535,13 @@ function updateUser() {
     })
     .then(response => response.json())
     .then(result => {
-        if (result.error) {
-            let errorMsg = (typeof result.error === 'string') 
-                ? result.error 
-                : JSON.stringify(result.error); // biar keliatan semua
+        console.log('Update result:', result); // Debug log
+        
+        if (result.error || result.status === 'error') {
+            let errorMsg = result.error || result.message;
+            if (typeof errorMsg === 'object') {
+                errorMsg = JSON.stringify(errorMsg);
+            }
             alert('Error: ' + errorMsg);
         } else {
             alert('User berhasil diubah!');
@@ -548,8 +572,11 @@ function changeUserRole(userId, newRole) {
     })
     .then(response => response.json())
     .then(result => {
-        if (result.error) {
-            alert('Error: ' + result.error + ' - ' + userId + ' - ' + newRole);
+        console.log('Role change result:', result); // Debug log
+        
+        if (result.error || result.status === 'error') {
+            let errorMsg = result.error || result.message;
+            alert('Error: ' + errorMsg + ' - ' + userId + ' - ' + newRole);
         } else {
             alert('Role user berhasil diubah!');
             location.reload();
@@ -559,6 +586,208 @@ function changeUserRole(userId, newRole) {
         console.error('Error:', error);
         alert('Terjadi kesalahan saat mengubah role user');
     });
+}
+
+// Faculty and Department Edit Functions
+function updateFacultyDisplay(facultyName, facultyId) {
+    document.getElementById('faculty_display_text').textContent = facultyName;
+    window.currentFacultyId = facultyId;
+    window.currentFacultyName = facultyName;
+}
+
+function updateDepartmentDisplay(departmentName, departmentId) {
+    document.getElementById('department_display_text').textContent = departmentName;
+    window.currentDepartmentId = departmentId;
+    window.currentDepartmentName = departmentName;
+}
+
+function editFaculty() {
+    // Hide display, show edit
+    document.querySelector('#faculty_display_container > div:first-child').classList.add('hidden');
+    document.getElementById('faculty_edit_container').classList.remove('hidden');
+    
+    // Set current value in dropdown
+    const facultySelect = document.getElementById('edit_faculty_id');
+    facultySelect.value = window.currentFacultyId || '';
+}
+
+function saveFaculty() {
+    const facultySelect = document.getElementById('edit_faculty_id');
+    const selectedOption = facultySelect.selectedOptions[0];
+    const userId = document.getElementById('edit_user_id').value;
+    
+    if (!selectedOption || !selectedOption.value) {
+        alert('Pilih fakultas terlebih dahulu');
+        return;
+    }
+    
+    // Save to database
+    const data = {
+        faculty_id: selectedOption.value
+    };
+    
+    fetch(`<?= base_url('/api/admin/users/') ?>${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer <?= session()->get('auth_token') ?>'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.error || result.status === 'error') {
+            alert('Error: ' + (result.error || result.message));
+        } else {
+            // Update display
+            updateFacultyDisplay(selectedOption.textContent, selectedOption.value);
+            
+            // Reset department since faculty changed
+            updateDepartmentDisplay('-', null);
+            
+            // Hide edit, show display
+            cancelFacultyEdit();
+            
+            alert('Fakultas berhasil diubah!');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat mengubah fakultas');
+    });
+}
+
+function cancelFacultyEdit() {
+    // Hide edit, show display
+    document.querySelector('#faculty_display_container > div:first-child').classList.remove('hidden');
+    document.getElementById('faculty_edit_container').classList.add('hidden');
+}
+
+function editDepartment() {
+    if (!window.currentFacultyId) {
+        alert('Pilih fakultas terlebih dahulu');
+        return;
+    }
+    
+    // Hide display, show edit
+    document.querySelector('#department_display_container > div:first-child').classList.add('hidden');
+    document.getElementById('department_edit_container').classList.remove('hidden');
+    
+    // Load departments for current faculty
+    loadDepartmentsForEdit(window.currentFacultyId, window.currentDepartmentId);
+}
+
+function loadDepartmentsForEdit(facultyId, selectedDepartmentId = null) {
+    const departmentSelect = document.getElementById('edit_department_id');
+    
+    departmentSelect.innerHTML = '<option value="">Loading...</option>';
+    
+    fetch(`<?= base_url('/api/departments/') ?>${facultyId}`)
+        .then(response => response.json())
+        .then(departments => {
+            departmentSelect.innerHTML = '<option value="">Pilih Jurusan</option>';
+            
+            if (Array.isArray(departments)) {
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.id;
+                    option.textContent = dept.name;
+                    
+                    if (selectedDepartmentId && dept.id == selectedDepartmentId) {
+                        option.selected = true;
+                    }
+                    
+                    departmentSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching departments:', error);
+            departmentSelect.innerHTML = '<option value="">Error loading departments</option>';
+        });
+}
+
+function saveDepartment() {
+    const departmentSelect = document.getElementById('edit_department_id');
+    const selectedOption = departmentSelect.selectedOptions[0];
+    const userId = document.getElementById('edit_user_id').value;
+    
+    if (!selectedOption || !selectedOption.value) {
+        alert('Pilih jurusan terlebih dahulu');
+        return;
+    }
+    
+    // Save to database
+    const data = {
+        department_id: selectedOption.value
+    };
+    
+    fetch(`<?= base_url('/api/admin/users/') ?>${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer <?= session()->get('auth_token') ?>'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.error || result.status === 'error') {
+            alert('Error: ' + (result.error || result.message));
+        } else {
+            // Update display
+            updateDepartmentDisplay(selectedOption.textContent, selectedOption.value);
+            
+            // Hide edit, show display
+            cancelDepartmentEdit();
+            
+            alert('Jurusan berhasil diubah!');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat mengubah jurusan');
+    });
+}
+
+function cancelDepartmentEdit() {
+    // Hide edit, show display
+    document.querySelector('#department_display_container > div:first-child').classList.remove('hidden');
+    document.getElementById('department_edit_container').classList.add('hidden');
+}
+
+function loadDepartments() {
+    const facultySelect = document.getElementById('faculty_id');
+    const departmentSelect = document.getElementById('department');
+    const facultyId = facultySelect.value;
+    
+    if (!facultyId) {
+        departmentSelect.innerHTML = '<option value="">Pilih Jurusan</option>';
+        return;
+    }
+    
+    departmentSelect.innerHTML = '<option value="">Loading...</option>';
+    
+    fetch(`<?= base_url('/api/departments/') ?>${facultyId}`)
+        .then(response => response.json())
+        .then(departments => {
+            departmentSelect.innerHTML = '<option value="">Pilih Jurusan</option>';
+            
+            if (Array.isArray(departments)) {
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.id;
+                    option.textContent = dept.name;
+                    departmentSelect.appendChild(option);
+                });
+            } else {
+                departmentSelect.innerHTML = '<option value="">Error: Invalid data format</option>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching departments:', error);
+            departmentSelect.innerHTML = '<option value="">Error loading departments</option>';
+        });
 }
 
 function filterUsers() {

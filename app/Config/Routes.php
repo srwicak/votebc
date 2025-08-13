@@ -24,6 +24,12 @@ $routes->post('api/votes', 'Vote::castVote');
 $routes->get('api/votes/election/(:num)/status', 'Vote::hasVoted/$1');
 $routes->get('api/votes/verify/(:num)', 'Vote::verifyVote/$1');
 $routes->get('api/votes/election/(:num)/all', 'Vote::getElectionVotes/$1');
+$routes->get('api/blockchain/status', 'Vote::checkBlockchainStatus');
+$routes->get('api/blockchain/test-transaction', 'Vote::testBlockchainTransaction');
+
+// Verification Debug Routes - these help diagnose hash verification issues
+$routes->get('api/debug/hash', 'VerificationDebug::testHash');
+$routes->get('api/debug/verify/(:num)', 'VerificationDebug::debugVerifyVote/$1');
 
 // Statistics Routes
 $routes->get('api/statistics/election/(:num)', 'Statistics::getElectionResults/$1');
@@ -83,6 +89,11 @@ $routes->get('profile', 'Frontend::profile');
 $routes->get('candidate/profile', 'Candidate::profile');
 $routes->post('candidate/update/(:num)', 'Candidate::update/$1');
 
+// Candidate Profile Routes (new implementation)
+$routes->get('candidate-profile', 'CandidateProfile::index');
+$routes->post('candidate-profile/update', 'CandidateProfile::update');
+$routes->get('candidate-profile/switch/(:num)', 'CandidateProfile::switchCandidate/$1');
+
 // Admin Routes
 $routes->get('admin/dashboard', 'Frontend::dashboard');
 $routes->get('admin/elections', 'Frontend::adminElections');
@@ -92,7 +103,6 @@ $routes->get('admin/election/(:num)/candidates/create', 'Admin::createCandidate/
 $routes->post('admin/election/(:num)/candidates/store', 'Admin::storeCandidate/$1');
 $routes->get('admin/users', 'Frontend::adminUsers');
 $routes->get('admin/academic', 'Frontend::adminAcademic');
-$routes->get('admin/analytics', 'Analytics::index');
 $routes->get('admin/reset-password', 'Frontend::adminResetPassword');
 
 // AJAX Routes

@@ -1,0 +1,57 @@
+    public function deleteCandidate($id)
+    {
+        try {
+            $this->requireRole(['admin']);
+
+            $candidateModel = new CandidateModel();
+            $candidate = $candidateModel->find($id);
+
+            if (!$candidate) {
+                return $this->sendError('Kandidat tidak ditemukan', 404);
+            }
+            
+            // Get the election to check if voting period has started
+            $electionModel = new ElectionModel();
+            $election = $electionModel->find($candidate['election_id']);
+            
+            if (!$election) {
+                return $this->sendError('Pemilihan tidak ditemukan', 404);
+            }
+            
+            // Check if voting period has started
+            if (time() >= strtotime($election['start_time'])) {
+                return $this->sendError('Periode voting telah dimulai. Kandidat tidak dapat dihapus.', 403);
+            }
+
+            // Check if there are votes for this candidate
+            $voteModel = new \App\Models\VoteModel();
+            $votes = $voteModel->where('candidate_id', $id)->findAll();
+
+            if (!empty($votes)) {
+                return $this->sendError('Tidak dapat menghapus kandidat yang sudah memiliki vote', 400);
+            }
+
+            // Begin transaction
+            $db = \Config\Database::connect();
+            $db->transBegin();
+
+            try {
+                // Delete candidate
+                if (!$candidateModel->delete($id)) {
+                    $db->transRollback();
+                    return $this->sendError('Gagal menghapus kandidat', 500);
+                }
+
+                $db->transCommit();
+
+                return $this->sendResponse([
+                    'message' => 'Kandidat berhasil dihapus'
+                ]);
+            } catch (\Exception $e) {
+                $db->transRollback();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }

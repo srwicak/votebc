@@ -324,10 +324,24 @@ class Admin extends BaseController{
         try {
             $this->requireRole(['admin', 'operator']);
 
+            // Get JSON data instead of POST data
+            $json = $this->request->getJSON(true);
+            if (!$json) {
+                return $this->sendError('Invalid JSON data', 400);
+            }
+
             $data = [
-                'name' => $this->request->getPost('name'),
-                'code' => $this->request->getPost('code')
+                'name' => $json['name'] ?? null,
+                'code' => $json['code'] ?? null
             ];
+
+            // Validation
+            if (empty($data['name']) || empty($data['code'])) {
+                return $this->sendError([
+                    'name' => empty($data['name']) ? 'The name field is required.' : null,
+                    'code' => empty($data['code']) ? 'The code field is required.' : null
+                ], 400);
+            }
 
             $facultyModel = new FacultyModel();
 
@@ -350,11 +364,33 @@ class Admin extends BaseController{
         try {
             $this->requireRole(['admin', 'operator']);
 
+            // Get JSON data instead of POST data
+            $json = $this->request->getJSON(true);
+            if (!$json) {
+                return $this->sendError('Invalid JSON data', 400);
+            }
+
             $data = [
-                'name' => $this->request->getPost('name'),
-                'code' => $this->request->getPost('code'),
-                'faculty_id' => $this->request->getPost('faculty_id')
+                'name' => $json['name'] ?? null,
+                'code' => $json['code'] ?? null,
+                'faculty_id' => $json['faculty_id'] ?? null
             ];
+
+            // Validation
+            $errors = [];
+            if (empty($data['name'])) {
+                $errors['name'] = 'The name field is required.';
+            }
+            if (empty($data['code'])) {
+                $errors['code'] = 'The code field is required.';
+            }
+            if (empty($data['faculty_id'])) {
+                $errors['faculty_id'] = 'The faculty_id field is required.';
+            }
+
+            if (!empty($errors)) {
+                return $this->sendError($errors, 400);
+            }
 
             $departmentModel = new DepartmentModel();
 
@@ -1047,7 +1083,7 @@ public function getCandidates($electionId = null)
             if ($photo && $photo->isValid() && !$photo->hasMoved()) {
                 $newName = $photo->getRandomName();
                 $photo->move(ROOTPATH . 'public/uploads/candidates', $newName);
-                $photoPath = base_url('uploads/candidates/' . $newName);
+                $photoPath = 'uploads/candidates/' . $newName; // Store relative path only
             }
 
             $data = [
@@ -1132,6 +1168,30 @@ public function getCandidates($electionId = null)
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+    
+    public function getCandidateDetail($id)
+    {
+        try {
+            // Allow access to any authenticated user (no role restriction for viewing candidate details)
+            $user = $this->getCurrentUser();
+            if (!$user) {
+                return $this->sendError('Unauthorized', 401);
+            }
+
+            $candidateModel = new CandidateModel();
+            $candidate = $candidateModel->getCandidatePairWithDetails($id);
+
+            if (!$candidate) {
+                return $this->sendError('Kandidat tidak ditemukan', 404);
+            }
+
+            return $this->sendResponse($candidate);
+
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
     // Faculty CRUD Operations
     public function getFaculties()
     {

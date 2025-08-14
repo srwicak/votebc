@@ -425,17 +425,24 @@
                             <?php foreach ($candidates as $candidate): ?>
                                 <div class="w-full md:w-1/2 lg:w-1/3 px-3 mb-6">
                                     <div class="bg-white rounded-lg shadow-md border border-gray-100 h-full">
-                                        <div class="p-5 text-center">
-                                            <img src="<?= $candidate['photo'] ?: base_url('assets/img/user-placeholder.svg') ?>"
-                                                 alt="<?= esc($candidate['candidate_name']) ?>"
-                                                 class="rounded-full mx-auto mb-4 w-24 h-24 object-cover">
-
-                                            <h5 class="font-semibold mb-1"><?= esc($candidate['candidate_name']) ?> - <?= esc($candidate['vice_candidate_name']) ?></h5>
+                        <div class="p-5 text-center">
+                            <img src="<?= !empty($candidate['photo']) ? base_url($candidate['photo']) : base_url('assets/img/user-placeholder.svg') ?>"
+                                 alt="<?= esc($candidate['candidate_name']) ?>"
+                                 class="rounded-full mx-auto mb-4 w-24 h-24 object-cover">                                            <h5 class="font-semibold mb-1"><?= esc($candidate['candidate_name']) ?> - <?= esc($candidate['vice_candidate_name']) ?></h5>
                                             <p class="text-gray-500 text-sm mb-4"><?= esc($candidate['candidate_department_name'] ?: 'Tidak ada jurusan') ?> - <?= esc($candidate['vice_candidate_department_name'] ?: 'Tidak ada jurusan') ?></p>
                                             
                                             <div class="text-left mt-4">
                                                 <p class="text-sm mb-2"><span class="font-semibold">Visi:</span><br><?= esc($candidate['vision']) ?></p>
                                                 <p class="text-sm mb-4"><span class="font-semibold">Misi:</span><br><?= esc($candidate['mission']) ?></p>
+                                            </div>
+                                            
+                                            <!-- Tombol Detail Kandidat -->
+                                            <div class="mb-4">
+                                                <button type="button" 
+                                                        class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
+                                                        onclick="showCandidateDetail(<?= $candidate['id'] ?>)">
+                                                    <i class="fas fa-info-circle mr-1"></i> Detail Kandidat
+                                                </button>
                                             </div>
                                             
                                             <?php if ($isElectionEnded): ?>
@@ -480,8 +487,7 @@
                             <?php endforeach; ?>
                         </div>
                         
-                        <!-- ?php if ($isElectionEnded): ?> -->
-                        <?php if (false): ?>
+                        <?php if ($isElectionEnded): ?>
                         <!-- Election Results Section -->
                         <div class="mt-8 mb-6">
                             <h4 class="text-lg font-semibold mb-4"><i class="fas fa-chart-bar mr-2"></i>Hasil Pemilihan</h4>
@@ -571,7 +577,7 @@
                 <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full">
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                             <div class="sm:flex sm:items-start">
                                 <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-emerald-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -605,6 +611,42 @@
                 </div>
             </div>
             
+            <!-- Candidate Detail Modal -->
+            <div class="fixed inset-0 z-50 overflow-y-auto hidden" id="candidateDetailModal" tabindex="-1" aria-labelledby="candidateDetailModalLabel" aria-hidden="true">
+                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                        <div class="bg-white">
+                            <!-- Modal Header -->
+                            <div class="bg-blue-600 px-6 py-4 flex justify-between items-center">
+                                <h3 class="text-lg leading-6 font-medium text-white" id="candidateDetailModalLabel">
+                                    <i class="fas fa-user-circle mr-2"></i>Detail Kandidat
+                                </h3>
+                                <button type="button" class="text-white hover:text-gray-300 focus:outline-none" onclick="closeCandidateDetailModal()">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Modal Body -->
+                            <div class="px-6 py-6" id="candidateDetailContent">
+                                <div class="text-center py-8">
+                                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                                    <p class="mt-2 text-gray-600">Memuat detail kandidat...</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Modal Footer -->
+                            <div class="bg-gray-50 px-6 py-3 flex justify-end">
+                                <button type="button" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors" onclick="closeCandidateDetailModal()">
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <script>
             // Variables to store election and candidate IDs
             let currentElectionId = null;
@@ -624,6 +666,175 @@
                 
                 // Show confirmation modal
                 document.getElementById('voteConfirmationModal').classList.remove('hidden');
+            }
+            
+            // Function to show candidate detail modal
+            function showCandidateDetail(candidateId) {
+                // Show modal
+                document.getElementById('candidateDetailModal').classList.remove('hidden');
+                
+                // Reset content to loading state
+                document.getElementById('candidateDetailContent').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                        <p class="mt-2 text-gray-600">Memuat detail kandidat...</p>
+                    </div>
+                `;
+                
+                // Fetch candidate details
+                fetch('<?= base_url('api/candidates') ?>/' + candidateId, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer <?= session()->get('auth_token') ?>'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('candidateDetailContent').innerHTML = `
+                            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded">
+                                <div class="flex">
+                                    <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+                                    <p>Error: ${data.error}</p>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const candidate = data.data;
+                    
+                    // Parse programs if it's a JSON string
+                    let programs = [];
+                    if (candidate.programs) {
+                        try {
+                            programs = typeof candidate.programs === 'string' ? JSON.parse(candidate.programs) : candidate.programs;
+                        } catch (e) {
+                            console.error('Error parsing programs:', e);
+                            programs = [];
+                        }
+                    }
+                    
+                    // Generate programs HTML
+                    let programsHTML = '';
+                    if (programs && programs.length > 0) {
+                        programsHTML = `
+                            <div class="mt-6">
+                                <h4 class="text-lg font-semibold mb-3 text-gray-800">
+                                    <i class="fas fa-tasks mr-2 text-blue-600"></i>Program Kerja
+                                </h4>
+                                <div class="space-y-3">
+                        `;
+                        
+                        programs.forEach((program, index) => {
+                            programsHTML += `
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                                    <h5 class="font-semibold text-blue-900 mb-2">${index + 1}. ${program.title || program.name || 'Program ' + (index + 1)}</h5>
+                                    <p class="text-blue-800 text-sm">${program.description || program.detail || program}</p>
+                                </div>
+                            `;
+                        });
+                        
+                        programsHTML += `
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        programsHTML = `
+                            <div class="mt-6">
+                                <h4 class="text-lg font-semibold mb-3 text-gray-800">
+                                    <i class="fas fa-tasks mr-2 text-blue-600"></i>Program Kerja
+                                </h4>
+                                <div class="bg-gray-50 border-l-4 border-gray-400 text-gray-700 p-4 rounded-r-lg">
+                                    <p class="text-sm">Program kerja belum tersedia.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Build complete candidate detail HTML
+                    const detailHTML = `
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left Column - Photo and Basic Info -->
+                            <div class="lg:col-span-1">
+                                <div class="text-center">
+                                    <!-- Candidate Pair Photo -->
+                                    <div class="mb-6">
+                                        <img src="${candidate.photo ? '<?= base_url() ?>/' + candidate.photo : '<?= base_url('assets/img/user-placeholder.svg') ?>'}" 
+                                             alt="${candidate.candidate_name} & ${candidate.vice_candidate_name}" 
+                                             class="rounded-lg mx-auto w-full max-w-sm object-cover border-4 border-gray-200">
+                                        <h4 class="font-bold text-lg mt-4 text-center">${candidate.candidate_name} & ${candidate.vice_candidate_name}</h4>
+                                        <p class="text-gray-600 text-center">${candidate.candidate_nim} & ${candidate.vice_candidate_nim}</p>
+                                    </div>
+                                    
+                                    <!-- Individual Info -->
+                                    <div class="grid grid-cols-1 gap-4 text-sm">
+                                        <div class="bg-blue-50 p-3 rounded-lg">
+                                            <h5 class="font-semibold text-blue-800 mb-1">Ketua</h5>
+                                            <p class="font-medium">${candidate.candidate_name}</p>
+                                            <p class="text-gray-600">${candidate.candidate_nim}</p>
+                                            <p class="text-gray-500">${candidate.candidate_department_name || 'Tidak ada jurusan'}</p>
+                                            ${candidate.candidate_faculty_name ? `<p class="text-gray-500">${candidate.candidate_faculty_name}</p>` : ''}
+                                        </div>
+                                        
+                                        <div class="bg-green-50 p-3 rounded-lg">
+                                            <h5 class="font-semibold text-green-800 mb-1">Wakil</h5>
+                                            <p class="font-medium">${candidate.vice_candidate_name}</p>
+                                            <p class="text-gray-600">${candidate.vice_candidate_nim}</p>
+                                            <p class="text-gray-500">${candidate.vice_candidate_department_name || 'Tidak ada jurusan'}</p>
+                                            ${candidate.vice_candidate_faculty_name ? `<p class="text-gray-500">${candidate.vice_candidate_faculty_name}</p>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column - Vision, Mission, and Programs -->
+                            <div class="lg:col-span-2">
+                                <!-- Vision -->
+                                <div class="mb-6">
+                                    <h4 class="text-lg font-semibold mb-3 text-gray-800">
+                                        <i class="fas fa-eye mr-2 text-emerald-600"></i>Visi
+                                    </h4>
+                                    <div class="bg-emerald-50 border-l-4 border-emerald-400 p-4 rounded-r-lg">
+                                        <p class="text-emerald-800">${candidate.vision || 'Visi belum tersedia.'}</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mission -->
+                                <div class="mb-6">
+                                    <h4 class="text-lg font-semibold mb-3 text-gray-800">
+                                        <i class="fas fa-bullseye mr-2 text-purple-600"></i>Misi
+                                    </h4>
+                                    <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg">
+                                        <p class="text-purple-800">${candidate.mission || 'Misi belum tersedia.'}</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Programs -->
+                                ${programsHTML}
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('candidateDetailContent').innerHTML = detailHTML;
+                })
+                .catch(error => {
+                    console.error('Error fetching candidate details:', error);
+                    document.getElementById('candidateDetailContent').innerHTML = `
+                        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded">
+                            <div class="flex">
+                                <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+                                <p>Terjadi kesalahan saat memuat detail kandidat: ${error.message}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Function to close candidate detail modal
+            function closeCandidateDetailModal() {
+                document.getElementById('candidateDetailModal').classList.add('hidden');
             }
             
             // Function to load election results
@@ -719,31 +930,67 @@
                                         Akan diadakan pemilihan ulang untuk kandidat dengan perolehan suara tertinggi yang seri.
                                     </p>
                                     <div class="flex flex-wrap gap-2 mt-2">
-                                        ${tiedCandidates.map(candidate => `
-                                            <div class="flex items-center bg-white p-2 rounded-lg">
-                                                <img src="${candidate.candidate.photo || '<?= base_url("assets/img/user-placeholder.svg") ?>'}" 
-                                                     alt="${candidate.candidate.user_name}" 
-                                                     class="rounded-full w-8 h-8 object-cover mr-2">
-                                                <span class="text-sm font-medium">${candidate.candidate.user_name}</span>
-                                            </div>
-                                        `).join('')}
+                                        ${tiedCandidates.map(candidate => {
+                                            let candidateName = 'Unknown';
+                                            let candidatePhoto = '<?= base_url("assets/img/user-placeholder.svg") ?>';
+                                            
+                                            if (candidate.candidate) {
+                                                if (candidate.candidate.candidate_name && candidate.candidate.vice_candidate_name) {
+                                                    candidateName = candidate.candidate.candidate_name + ' & ' + candidate.candidate.vice_candidate_name;
+                                                } else if (candidate.candidate.user_name) {
+                                                    candidateName = candidate.candidate.user_name;
+                                                } else if (candidate.candidate.name) {
+                                                    candidateName = candidate.candidate.name;
+                                                }
+                                                
+                                                if (candidate.candidate.photo) {
+                                                    candidatePhoto = candidate.candidate.photo.startsWith('http') ? candidate.candidate.photo : '<?= base_url() ?>/' + candidate.candidate.photo;
+                                                }
+                                            }
+                                            
+                                            return `
+                                                <div class="flex items-center bg-white p-2 rounded-lg">
+                                                    <img src="${candidatePhoto}" 
+                                                         alt="${candidateName}" 
+                                                         class="rounded-full w-8 h-8 object-cover mr-2">
+                                                    <span class="text-sm font-medium">${candidateName}</span>
+                                                </div>
+                                            `;
+                                        }).join('')}
                                     </div>
                                 </div>
                             `;
                         } else {
                             // Clear winner
                             const winner = data.data.results[0];
+                            let winnerName = 'Unknown';
+                            let winnerPhoto = '<?= base_url("assets/img/user-placeholder.svg") ?>';
+                            
+                            if (winner.candidate) {
+                                if (winner.candidate.candidate_name && winner.candidate.vice_candidate_name) {
+                                    winnerName = winner.candidate.candidate_name + ' & ' + winner.candidate.vice_candidate_name;
+                                } else if (winner.candidate.user_name) {
+                                    winnerName = winner.candidate.user_name;
+                                } else if (winner.candidate.name) {
+                                    winnerName = winner.candidate.name;
+                                }
+                                
+                                if (winner.candidate.photo) {
+                                    winnerPhoto = winner.candidate.photo.startsWith('http') ? winner.candidate.photo : '<?= base_url() ?>/' + winner.candidate.photo;
+                                }
+                            }
+                            
                             winnerHTML = `
                                 <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-4">
                                     <h5 class="font-semibold text-emerald-800 mb-2">
                                         <i class="fas fa-trophy text-yellow-500 mr-2"></i>Pemenang Pemilihan
                                     </h5>
                                     <div class="flex items-center">
-                                        <img src="${winner.candidate.photo || '<?= base_url("assets/img/user-placeholder.svg") ?>'}" 
-                                             alt="${winner.candidate.user_name}" 
+                                        <img src="${winnerPhoto}" 
+                                             alt="${winnerName}" 
                                              class="rounded-full w-16 h-16 object-cover mr-4">
                                         <div>
-                                            <p class="font-semibold text-lg">${winner.candidate.user_name}</p>
+                                            <p class="font-semibold text-lg">${winnerName}</p>
                                             <p class="text-sm text-gray-600">Perolehan: ${winner.vote_count} suara (${winner.percentage}%)</p>
                                         </div>
                                     </div>
@@ -766,6 +1013,54 @@
                     `;
                     
                     data.data.results.forEach((result, index) => {
+                        // Get candidate info from multiple possible sources
+                        let candidateName = 'Unknown';
+                        let candidateNim = '';
+                        let candidatePhoto = '<?= base_url("assets/img/user-placeholder.svg") ?>';
+                        
+                        // Try to get data from result.candidate first
+                        if (result.candidate) {
+                            // Check for the correct field names returned by the API
+                            if (result.candidate.candidate_name && result.candidate.vice_candidate_name) {
+                                candidateName = result.candidate.candidate_name + ' & ' + result.candidate.vice_candidate_name;
+                            } else if (result.candidate.user_name) {
+                                candidateName = result.candidate.user_name;
+                            } else if (result.candidate.name) {
+                                candidateName = result.candidate.name;
+                            }
+                            
+                            if (result.candidate.candidate_nim && result.candidate.vice_candidate_nim) {
+                                candidateNim = result.candidate.candidate_nim + ' & ' + result.candidate.vice_candidate_nim;
+                            } else if (result.candidate.user_nim) {
+                                candidateNim = result.candidate.user_nim;
+                            } else if (result.candidate.nim) {
+                                candidateNim = result.candidate.nim;
+                            }
+                            
+                            if (result.candidate.photo) {
+                                candidatePhoto = result.candidate.photo.startsWith('http') ? result.candidate.photo : '<?= base_url() ?>/' + result.candidate.photo;
+                            }
+                        }
+                        
+                        // If still unknown, try to get from DOM
+                        if (candidateName === 'Unknown' && result.candidate_id) {
+                            const candidateElement = document.querySelector(`[data-candidate-id="${result.candidate_id}"]`);
+                            if (candidateElement) {
+                                const cardParent = candidateElement.closest('.border.border-gray-100');
+                                if (cardParent) {
+                                    const nameElement = cardParent.querySelector('h5.font-semibold');
+                                    if (nameElement) {
+                                        candidateName = nameElement.textContent.trim();
+                                    }
+                                    
+                                    const imgElement = cardParent.querySelector('img');
+                                    if (imgElement && imgElement.src) {
+                                        candidatePhoto = imgElement.src;
+                                    }
+                                }
+                            }
+                        }
+                        
                         tableHTML += `
                             <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
                                 <td class="py-2 px-4 text-sm">${index + 1}</td>
@@ -773,12 +1068,12 @@
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-8 w-8">
                                             <img class="h-8 w-8 rounded-full object-cover" 
-                                                 src="${result.candidate && result.candidate.photo ? result.candidate.photo : base_url('assets/img/user-placeholder.svg')}" 
-                                                 alt="${result.candidate && result.candidate.user_name ? result.candidate.user_name : 'Unknown'}">
+                                                 src="${candidatePhoto}" 
+                                                 alt="${candidateName}">
                                         </div>
                                         <div class="ml-3">
-                                            <p class="font-medium">${result.candidate && result.candidate.user_name ? result.candidate.user_name : 'Unknown'}</p>
-                                            <p class="text-xs text-gray-500">${result.candidate && result.candidate.user_nim ? result.candidate.user_nim : ''}</p>
+                                            <p class="font-medium">${candidateName}</p>
+                                            <p class="text-xs text-gray-500">${candidateNim}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -976,63 +1271,61 @@
                                 </p>
                             </div>
                         `;
+                    }).catch(error => {
+                        console.error('Fetch error:', error);
+                        document.getElementById('participationStats').innerHTML = `
+                            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded">
+                                <div class="flex">
+                                    <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+                                    <p>Error: ${error.message}</p>
+                                </div>
+                            </div>
+                        `;
                     });
                     return;
                 }
-                    
-                    // Create stats display
-                    let levelText = "pemilih";
-                    switch (data.election.level) {
-                        case 'universitas':
-                            levelText = "seluruh mahasiswa universitas";
-                            break;
-                        case 'fakultas':
-                            levelText = "mahasiswa fakultas";
-                            break;
-                        case 'jurusan':
-                            levelText = "mahasiswa jurusan";
-                            break;
-                    }
-                    
-                    const statsHTML = `
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-blue-50 p-4 rounded-lg">
-                                <p class="text-blue-800 font-semibold text-lg">${total_votes}</p>
-                                <p class="text-blue-600 text-sm">Total Suara</p>
-                            </div>
-                            <div class="bg-purple-50 p-4 rounded-lg">
-                                <p class="text-purple-800 font-semibold text-lg">${eligible_voters}</p>
-                                <p class="text-purple-600 text-sm">Total Pemilih Eligible</p>
-                            </div>
-                            <div class="bg-amber-50 p-4 rounded-lg">
-                                <p class="text-amber-800 font-semibold text-lg">${participation_rate}%</p>
-                                <p class="text-amber-600 text-sm">Tingkat Partisipasi</p>
-                            </div>
+                
+                // Create stats display
+                let levelText = "pemilih";
+                switch (data.election.level) {
+                    case 'universitas':
+                        levelText = "seluruh mahasiswa universitas";
+                        break;
+                    case 'fakultas':
+                        levelText = "mahasiswa fakultas";
+                        break;
+                    case 'jurusan':
+                        levelText = "mahasiswa jurusan";
+                        break;
+                }
+                
+                const statsHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <p class="text-blue-800 font-semibold text-lg">${total_votes}</p>
+                            <p class="text-blue-600 text-sm">Total Suara</p>
                         </div>
-                        <div class="mt-4">
-                            <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
-                                <div class="bg-green-600 h-4 rounded-full text-xs text-white text-center" style="width: ${participation_rate}%">${participation_rate}%</div>
-                            </div>
-                            <p class="text-sm text-gray-600">
-                                Tingkat partisipasi berdasarkan ${levelText}. 
-                                ${total_votes} dari ${eligible_voters} pemilih yang eligible telah menggunakan hak suara.
-                            </p>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <p class="text-purple-800 font-semibold text-lg">${eligible_voters}</p>
+                            <p class="text-purple-600 text-sm">Total Pemilih Eligible</p>
                         </div>
-                    `;
-                    
-                    document.getElementById('participationStats').innerHTML = statsHTML;
-                })
-                .catch(error => {
-                    console.error('Fetch error:', error);
-                    document.getElementById('participationStats').innerHTML = `
-                        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded">
-                            <div class="flex">
-                                <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
-                                <p>Error: ${error.message}</p>
-                            </div>
+                        <div class="bg-amber-50 p-4 rounded-lg">
+                            <p class="text-amber-800 font-semibold text-lg">${participation_rate}%</p>
+                            <p class="text-amber-600 text-sm">Tingkat Partisipasi</p>
                         </div>
-                    `;
-                });
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+                            <div class="bg-green-600 h-4 rounded-full text-xs text-white text-center" style="width: ${participation_rate}%">${participation_rate}%</div>
+                        </div>
+                        <p class="text-sm text-gray-600">
+                            Tingkat partisipasi berdasarkan ${levelText}. 
+                            ${total_votes} dari ${eligible_voters} pemilih yang eligible telah menggunakan hak suara.
+                        </p>
+                    </div>
+                `;
+                
+                document.getElementById('participationStats').innerHTML = statsHTML;
             }
             
             // Function to cast vote
@@ -1226,6 +1519,13 @@
                             modal.classList.add('hidden');
                         }
                     });
+                });
+                
+                // Close candidate detail modal when clicking outside or on backdrop
+                document.getElementById('candidateDetailModal').addEventListener('click', function(event) {
+                    if (event.target === this) {
+                        closeCandidateDetailModal();
+                    }
                 });
                 
                 // Admin actions for tie scenarios

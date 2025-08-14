@@ -27,7 +27,7 @@
                     <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                         <h5 class="font-semibold mb-0"><i class="fas fa-list mr-2"></i> Daftar Fakultas</h5>
                         <button class="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
-                                onclick="openCreateFacultyModal()">
+                                onclick="window.openCreateFacultyModal()">
                             <i class="fas fa-plus mr-2"></i> Tambah Fakultas
                         </button>
                     </div>
@@ -80,7 +80,7 @@
                     <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                         <h5 class="font-semibold mb-0"><i class="fas fa-list mr-2"></i> Daftar Jurusan</h5>
                         <button class="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
-                                onclick="openCreateDepartmentModal()">
+                                onclick="window.openCreateDepartmentModal()">
                             <i class="fas fa-plus mr-2"></i> Tambah Jurusan
                         </button>
                     </div>
@@ -151,8 +151,8 @@
                 </form>
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm" onclick="createFaculty()">Simpan</button>
-                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="closeModal('createFacultyModal')">Batal</button>
+                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm" onclick="window.createFaculty()">Simpan</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="window.closeModal('createFacultyModal')">Batal</button>
             </div>
         </div>
     </div>
@@ -225,8 +225,8 @@
                 </form>
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm" onclick="createDepartment()">Simpan</button>
-                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="closeModal('createDepartmentModal')">Batal</button>
+                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm" onclick="window.createDepartment()">Simpan</button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="window.closeModal('createDepartmentModal')">Batal</button>
             </div>
         </div>
     </div>
@@ -333,8 +333,16 @@ window.addEventListener('click', function(event) {
 
 function createFaculty() {
     const form = document.getElementById('createFacultyForm');
+    if (!form) {
+        alert('Form tidak ditemukan!');
+        return;
+    }
+    
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
+    
+    // Debug: log form data
+    console.log('Form data:', data);
     
     // Validation
     if (!data.name || !data.code) {
@@ -353,7 +361,8 @@ function createFaculty() {
     .then(response => response.json())
     .then(result => {
         if (result.error) {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
+            console.log('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
         } else {
             alert('Fakultas berhasil ditambahkan!');
             location.reload();
@@ -378,7 +387,7 @@ function editFaculty(facultyId) {
     .then(response => response.json())
     .then(result => {
         if (result.error) {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
         } else {
             // Populate form
             document.getElementById('edit_faculty_id').value = result.id;
@@ -420,7 +429,7 @@ function updateFaculty() {
     .then(response => response.json())
     .then(result => {
         if (result.error) {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
         } else {
             alert('Fakultas berhasil diperbarui!');
             location.reload();
@@ -449,7 +458,7 @@ function deleteFaculty(facultyId) {
     .then(response => response.json())
     .then(result => {
         if (result.error) {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
         } else {
             alert('Fakultas berhasil dihapus!');
             location.reload();
@@ -463,8 +472,16 @@ function deleteFaculty(facultyId) {
 
 function createDepartment() {
     const form = document.getElementById('createDepartmentForm');
+    if (!form) {
+        alert('Form tidak ditemukan!');
+        return;
+    }
+    
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
+    
+    // Debug: log form data
+    console.log('Form data:', data);
     
     // Validation
     if (!data.name || !data.code || !data.faculty_id) {
@@ -483,7 +500,7 @@ function createDepartment() {
     .then(response => response.json())
     .then(result => {
         if (result.error) {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
         } else {
             alert('Jurusan berhasil ditambahkan!');
             location.reload();
@@ -508,7 +525,7 @@ function editDepartment(departmentId) {
     .then(response => response.json())
     .then(result => {
         if (result.error) {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
         } else {
             // Populate form
             document.getElementById('edit_department_id').value = result.id;
@@ -552,7 +569,7 @@ function updateDepartment() {
     .then(response => response.json())
     .then(result => {
         if (result.error) {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
         } else {
             alert('Jurusan berhasil diperbarui!');
             location.reload();
@@ -581,7 +598,7 @@ function deleteDepartment(departmentId) {
     .then(response => response.json())
     .then(result => {
         if (result.error) {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
         } else {
             alert('Jurusan berhasil dihapus!');
             location.reload();
@@ -650,6 +667,172 @@ window.deleteFaculty = function(facultyId) {
     }
 };
 
+window.createFaculty = function() {
+    console.log('=== CREATE FACULTY DEBUG ===');
+    console.log('createFaculty called');
+    
+    // Get input values directly by ID
+    const nameInput = document.getElementById('faculty_name');
+    const codeInput = document.getElementById('faculty_code');
+    
+    console.log('Name input element:', nameInput);
+    console.log('Code input element:', codeInput);
+    
+    if (!nameInput || !codeInput) {
+        alert('Input elements tidak ditemukan!');
+        console.error('Input elements missing');
+        return;
+    }
+    
+    const name = nameInput.value.trim();
+    const code = codeInput.value.trim();
+    
+    console.log('Name value:', name);
+    console.log('Code value:', code);
+    
+    // Validation
+    if (!name || !code) {
+        alert('Nama dan Kode Fakultas harus diisi');
+        console.error('Validation failed - empty values');
+        return;
+    }
+    
+    const finalData = {
+        name: name,
+        code: code
+    };
+    
+    console.log('Final data to send:', finalData);
+    console.log('Sending request to:', '<?= base_url('/api/admin/faculties') ?>');
+    console.log('Request body:', JSON.stringify(finalData));
+    
+    fetch('<?= base_url('/api/admin/faculties') ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer <?= session()->get('auth_token') ?>'
+        },
+        body: JSON.stringify(finalData)
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.text().then(text => {
+            console.log('Raw response:', text);
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('JSON parse error:', e);
+                throw new Error('Invalid JSON response: ' + text);
+            }
+        });
+    })
+    .then(result => {
+        console.log('Parsed result:', result);
+        if (result.error) {
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
+        } else {
+            alert('Fakultas berhasil ditambahkan!');
+            // Clear form
+            nameInput.value = '';
+            codeInput.value = '';
+            // Close modal
+            window.closeModal('createFacultyModal');
+            // Reload page
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert('Terjadi kesalahan: ' + error.message);
+    });
+};
+
+window.createDepartment = function() {
+    console.log('=== CREATE DEPARTMENT DEBUG ===');
+    console.log('createDepartment called');
+    
+    // Get input values directly by ID
+    const nameInput = document.getElementById('department_name');
+    const codeInput = document.getElementById('department_code');
+    const facultySelect = document.getElementById('department_faculty_id');
+    
+    console.log('Name input element:', nameInput);
+    console.log('Code input element:', codeInput);
+    console.log('Faculty select element:', facultySelect);
+    
+    if (!nameInput || !codeInput || !facultySelect) {
+        alert('Input elements tidak ditemukan!');
+        console.error('Input elements missing');
+        return;
+    }
+    
+    const name = nameInput.value.trim();
+    const code = codeInput.value.trim();
+    const faculty_id = facultySelect.value;
+    
+    console.log('Name value:', name);
+    console.log('Code value:', code);
+    console.log('Faculty ID value:', faculty_id);
+    
+    // Validation
+    if (!name || !code || !faculty_id) {
+        alert('Nama, Kode, dan Fakultas harus diisi');
+        console.error('Validation failed - empty values');
+        return;
+    }
+    
+    const finalData = {
+        name: name,
+        code: code,
+        faculty_id: faculty_id
+    };
+    
+    console.log('Final data to send:', finalData);
+    console.log('Sending request to:', '<?= base_url('/api/admin/departments') ?>');
+    console.log('Request body:', JSON.stringify(finalData));
+    
+    fetch('<?= base_url('/api/admin/departments') ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer <?= session()->get('auth_token') ?>'
+        },
+        body: JSON.stringify(finalData)
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.text().then(text => {
+            console.log('Raw response:', text);
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('JSON parse error:', e);
+                throw new Error('Invalid JSON response: ' + text);
+            }
+        });
+    })
+    .then(result => {
+        console.log('Parsed result:', result);
+        if (result.error) {
+            alert('Error: ' + (typeof result.error === 'object' ? JSON.stringify(result.error) : result.error));
+        } else {
+            alert('Jurusan berhasil ditambahkan!');
+            // Clear form
+            nameInput.value = '';
+            codeInput.value = '';
+            facultySelect.selectedIndex = 0;
+            // Close modal
+            window.closeModal('createDepartmentModal');
+            // Reload page
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert('Terjadi kesalahan: ' + error.message);
+    });
+};
+
 window.editDepartment = function(departmentId) {
     console.log('editDepartment called for ID:', departmentId);
     alert('Edit Department function called for ID: ' + departmentId);
@@ -663,6 +846,37 @@ window.deleteDepartment = function(departmentId) {
 };
 
 console.log('Academic page functions defined globally');
+
+// Test all elements when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOM READY DEBUG ===');
+    
+    // Test faculty modal elements
+    const facultyModal = document.getElementById('createFacultyModal');
+    const facultyForm = document.getElementById('createFacultyForm');
+    const facultyNameInput = document.getElementById('faculty_name');
+    const facultyCodeInput = document.getElementById('faculty_code');
+    
+    console.log('Faculty Modal:', facultyModal);
+    console.log('Faculty Form:', facultyForm);
+    console.log('Faculty Name Input:', facultyNameInput);
+    console.log('Faculty Code Input:', facultyCodeInput);
+    
+    // Test department modal elements
+    const deptModal = document.getElementById('createDepartmentModal');
+    const deptForm = document.getElementById('createDepartmentForm');
+    const deptNameInput = document.getElementById('department_name');
+    const deptCodeInput = document.getElementById('department_code');
+    const deptFacultySelect = document.getElementById('department_faculty_id');
+    
+    console.log('Department Modal:', deptModal);
+    console.log('Department Form:', deptForm);
+    console.log('Department Name Input:', deptNameInput);
+    console.log('Department Code Input:', deptCodeInput);
+    console.log('Department Faculty Select:', deptFacultySelect);
+    
+    console.log('=== END DOM DEBUG ===');
+});
 
 // Setup tab functionality
 document.addEventListener('DOMContentLoaded', function() {

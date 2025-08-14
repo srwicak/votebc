@@ -72,7 +72,7 @@
             <div class="bg-white rounded-lg shadow-md">
                 <div class="p-6 text-center">
                     <?php if (!empty($candidate['photo'])): ?>
-                        <img src="<?= $candidate['photo'] ?>"
+                        <img src="<?= base_url($candidate['photo']) ?>"
                              alt="Candidate Photo"
                              class="rounded-full mx-auto mb-4 w-36 h-36 object-cover">
                     <?php else: ?>
@@ -155,7 +155,8 @@
                     </div>
                     <?php endif; ?>
                     
-                    <form id="updateCandidateForm" action="<?= base_url('candidate/update/' . $candidate['id']) ?>" method="post" enctype="multipart/form-data">
+                    <form id="updateCandidateForm" action="<?= base_url('candidate-profile/update') ?>" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="candidate_id" value="<?= $candidate['id'] ?>">
                         <div class="mb-4">
                             <label for="vision" class="block text-sm font-medium text-gray-700 mb-1">
                                 Visi <span class="text-red-500">*</span>
@@ -198,7 +199,7 @@
                             </label>
                             <div class="flex items-center space-x-4">
                                 <div class="w-24 h-24 bg-gray-100 rounded-full overflow-hidden flex items-center justify-center">
-                                    <img id="photoPreview" src="<?= !empty($candidate['photo']) ? $candidate['photo'] : base_url('assets/img/user-placeholder.svg') ?>" alt="Preview" class="w-full h-full object-cover">
+                                    <img id="photoPreview" src="<?= !empty($candidate['photo']) ? base_url($candidate['photo']) : base_url('assets/img/user-placeholder.svg') ?>" alt="Preview" class="w-full h-full object-cover">
                                 </div>
                                 <div class="flex-1">
                                     <input type="file" id="photo" name="photo" accept="image/*" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">

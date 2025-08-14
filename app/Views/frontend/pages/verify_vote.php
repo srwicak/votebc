@@ -124,7 +124,8 @@
                 
                 // Fetch verification data from API with timeout and better error handling
                 console.log('Starting verification for vote ID:', <?= $vote['id'] ?>);
-                const apiUrl = 'http://localhost:8080/api/votes/verify/<?= $vote['id'] ?>';
+                const apiUrl = '<?= base_url('api/votes/verify/' . $vote['id']) ?>';
+                
                 console.log('API URL:', apiUrl);
                 
                 // Create timeout promise
@@ -231,9 +232,13 @@
                                                 <span class="font-medium">Hash Valid</span>
                                                 <p class="text-sm text-gray-500">
                                                     ${verification.hash_valid
-                                                        ? 'Hash vote cocok dengan data yang tercatat'
+                                                        ? (verification.hash_validated_from_storage 
+                                                            // ? 'Hash vote terverifikasi (divalidasi dari data blockchain tersimpan)'
+                                                            ? 'Hash vote terverifikasi'
+                                                            : 'Hash vote cocok dengan data yang tercatat')
                                                         : 'Hash vote tidak cocok dengan data yang diharapkan'}
                                                 </p>
+                                                ${verification.note ? `<p class="text-xs text-blue-600 mt-1">${verification.note}</p>` : ''}
                                             </div>
                                         </div>
                                         

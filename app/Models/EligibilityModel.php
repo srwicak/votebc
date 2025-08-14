@@ -81,12 +81,12 @@ class EligibilityModel extends Model
         // If no eligibility settings, all users are eligible
         if (empty($eligibility)) {
             $userModel = new UserModel();
-            return $userModel->where('role', 'user')->findAll();
+            return $userModel->where('role', 'mahasiswa')->findAll();
         }
         
         // Build query to get eligible users
         $userModel = new UserModel();
-        $userModel->where('role', 'user');
+        $userModel->where('role', 'mahasiswa');
         
         $userModel->groupStart();
         

@@ -27,6 +27,9 @@ $routes->get('api/votes/election/(:num)/all', 'Vote::getElectionVotes/$1');
 $routes->get('api/blockchain/status', 'Vote::checkBlockchainStatus');
 $routes->get('api/blockchain/test-transaction', 'Vote::testBlockchainTransaction');
 
+// Candidate Routes (Public API for candidate details)
+$routes->get('api/candidates/(:num)', 'Admin::getCandidateDetail/$1');
+
 // Verification Debug Routes - these help diagnose hash verification issues
 $routes->get('api/debug/hash', 'VerificationDebug::testHash');
 $routes->get('api/debug/verify/(:num)', 'VerificationDebug::debugVerifyVote/$1');

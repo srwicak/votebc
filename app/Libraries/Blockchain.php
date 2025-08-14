@@ -1001,23 +1001,33 @@ class Blockchain
     public function verifyVote($voteHash, $electionId, $candidateId, $voter, $timestamp, $voterIdHash)
     {
         try {
-            // In a real implementation, this would use Web3.php to call the contract
-            // Here we'll simulate the verification with more realistic details
-            
             // Log the input parameters
             \Config\Services::logger()->info("Verifying vote with parameters: electionId={$electionId}, candidateId={$candidateId}, voter={$voter}, timestamp={$timestamp}, voteHash={$voteHash}");
             
-            // Calculate the expected vote hash - must match exactly how it's calculated in castVote
+            // ✅ PERBAIKAN: Gunakan election ID yang benar untuk perhitungan hash
+            // Jika electionId yang diberikan sudah dalam format unique (> 10000000), gunakan itu
+            // Jika tidak, generate unique election ID seperti saat castVote
+            $uniqueElectionId = $electionId;
+            if ($electionId < 10000000) {
+                // Generate unique election ID menggunakan method yang sama dengan castVote
+                $uniqueElectionId = $this->generateUserElectionId($electionId, $voter);
+                \Config\Services::logger()->info("Generated unique election ID {$uniqueElectionId} for verification (original: {$electionId})");
+            } else {
+                \Config\Services::logger()->info("Using provided unique election ID: {$uniqueElectionId}");
+            }
+            
+            // Calculate the expected vote hash using the CORRECT election ID
+            // Calculate the expected vote hash using the CORRECT election ID
+            // ✅ PERBAIKAN: Gunakan format yang PERSIS sama dengan debug endpoint yang benar
             $voteHashData = [
-                'election_id' => $electionId,
-                'candidate_id' => $candidateId,
-                'voter_id' => $voter,
-                'timestamp' => $timestamp
+                'election_id' => (string) $uniqueElectionId, // ✅ Convert to string like debug endpoint
+                'candidate_id' => (string) $candidateId, // ✅ Convert to string like debug endpoint
+                'voter_id' => (string) $voter, // ✅ String
+                'timestamp' => (int) $timestamp // ✅ Integer like debug endpoint
             ];
             $expectedVoteHash = hash('sha256', json_encode($voteHashData));
             
             \Config\Services::logger()->info("Vote hash calculation inputs: " . json_encode($voteHashData));
-            
             \Config\Services::logger()->info("Generated expected hash: {$expectedVoteHash}");
 
             // Check if the vote hash matches the expected hash
@@ -1026,12 +1036,9 @@ class Blockchain
             // For debugging purposes, if hash doesn't match, log details
             if (!$hashValid) {
                 \Config\Services::logger()->warning("Hash mismatch: provided={$voteHash}, expected={$expectedVoteHash}");
-                \Config\Services::logger()->warning("Hash input data: " . json_encode([
-                    'election_id' => $electionId,
-                    'candidate_id' => $candidateId,
-                    'voter_id' => $voter,
-                    'timestamp' => $timestamp
-                ]));
+                \Config\Services::logger()->warning("Hash input data: " . json_encode($voteHashData));
+            } else {
+                \Config\Services::logger()->info("✅ Hash validation successful!");
             }
 
             // In a real implementation, we would also check if the vote is recorded on the blockchain
@@ -1039,7 +1046,7 @@ class Blockchain
             $onBlockchain = true;
 
             // Log the verification attempt
-            \Config\Services::logger()->info("Vote verification: hash={$voteHash}, election={$electionId}, candidate={$candidateId}, voter={$voter}, hashValid={$hashValid}, onBlockchain={$onBlockchain}");
+            \Config\Services::logger()->info("Vote verification: hash={$voteHash}, election={$uniqueElectionId}, candidate={$candidateId}, voter={$voter}, hashValid={$hashValid}, onBlockchain={$onBlockchain}");
 
             // Add a small delay to simulate blockchain verification time
             usleep(300000); // 0.3 seconds
@@ -1049,7 +1056,10 @@ class Blockchain
                 'hash_valid' => $hashValid,
                 'on_blockchain' => $onBlockchain,
                 'timestamp' => $timestamp,
-                'verification_time' => time()
+                'verification_time' => time(),
+                'unique_election_id_used' => $uniqueElectionId,
+                'original_election_id' => $electionId,
+                'calculation_method' => $hashValid ? 'correct_unique_id' : 'hash_mismatch'
             ];
         } catch (\Exception $e) {
             \Config\Services::logger()->error("Error verifying vote: " . $e->getMessage());

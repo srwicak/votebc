@@ -33,12 +33,19 @@
                         
                         <?php if (isset($user) && isset($user['role']) && ($user['role'] === 'admin' || $user['role'] === 'operator')): ?>
                             <!-- Admin Dropdown -->
-                            <div class="relative" x-data="{ open: false }">
+                            <div class="relative" x-data="{ open: false }" x-cloak>
                                 <button @click="open = !open" @click.away="open = false" class="text-white hover:bg-primary-hover px-3 py-2 rounded-md text-sm font-medium transition-all flex items-center">
                                     <i class="fas fa-cog mr-1"></i> Admin
                                     <i class="fas fa-chevron-down ml-1 text-xs"></i>
                                 </button>
-                                <div x-show="open" class="absolute left-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                                <div x-show="open" 
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute left-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
                                     <?php if ($user['role'] === 'admin'): ?>
                                         <a href="<?= base_url('/admin/elections') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pemilihan</a>
                                         <a href="<?= base_url('/admin/users') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Users</a>
@@ -50,13 +57,20 @@
                     </div>
                     
                     <!-- User Profile Dropdown -->
-                    <div class="relative" x-data="{ open: false }">
+                    <div class="relative" x-data="{ open: false }" x-cloak>
                         <button @click="open = !open" @click.away="open = false" class="flex items-center text-white hover:bg-primary-hover px-3 py-2 rounded-md text-sm font-medium transition-all">
                             <i class="fas fa-user mr-1"></i>
                             <span><?= isset($user) && isset($user['name']) ? esc($user['name']) : 'User' ?></span>
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        <div x-show="open" class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                        <div x-show="open" 
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
                             <a href="<?= base_url('/profile') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-user-circle mr-2"></i> Profil
                             </a>
@@ -110,12 +124,19 @@
                 </a>
                 
                 <?php if (isset($user) && isset($user['role']) && ($user['role'] === 'admin' || $user['role'] === 'operator')): ?>
-                    <div x-data="{ open: false }">
+                    <div x-data="{ open: false }" x-cloak>
                         <button @click="open = !open" class="text-white w-full text-left px-3 py-2 rounded-md text-base font-medium flex justify-between items-center">
                             <span><i class="fas fa-cog mr-1"></i> Admin</span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
-                        <div x-show="open" class="pl-4 pb-2">
+                        <div x-show="open" 
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 transform scale-95"
+                             x-transition:enter-end="opacity-100 transform scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 transform scale-100"
+                             x-transition:leave-end="opacity-0 transform scale-95"
+                             class="pl-4 pb-2">
                             <?php if ($user['role'] === 'admin'): ?>
                                 <a href="<?= base_url('/admin/elections') ?>" class="text-white block px-3 py-2 rounded-md text-base font-medium">Pemilihan</a>
                                 <a href="<?= base_url('/admin/users') ?>" class="text-white block px-3 py-2 rounded-md text-base font-medium">Users</a>
@@ -206,6 +227,11 @@
     </div>
 </div>
 <?php endif; ?>
+
+<!-- Alpine.js FOUC prevention styles -->
+<style>
+[x-cloak] { display: none !important; }
+</style>
 
 <script>
 // Mobile menu toggle

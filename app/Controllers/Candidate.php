@@ -111,7 +111,7 @@ class Candidate extends BaseController
             if ($photo && $photo->isValid() && !$photo->hasMoved()) {
                 $newName = $photo->getRandomName();
                 $photo->move(ROOTPATH . 'public/uploads/candidates', $newName);
-                $photoPath = base_url('uploads/candidates/' . $newName);
+                $photoPath = 'uploads/candidates/' . $newName; // Store relative path only
             }
             
             // Prepare data for update

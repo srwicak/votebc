@@ -208,30 +208,48 @@ class CandidateProfile extends BaseController
                 return redirect()->to('/candidate-profile')->with('error', 'Anda tidak memiliki akses untuk mengubah kandidat ini');
             }
             
-            // Handle upload foto
-            $photo = $this->request->getFile('photo');
-            $photoPath = $candidate['photo']; // Simpan foto yang sudah ada secara default
+        // Handle upload foto
+        $photo = $this->request->getFile('photo');
+        $photoPath = $candidate['photo']; // Simpan foto yang sudah ada secara default
+        $hasNewPhoto = false; // Flag untuk tracking apakah ada foto baru
+        
+        if ($photo && $photo->isValid() && !$photo->hasMoved()) {
+            log_message('debug', 'Uploading photo: ' . $photo->getName());
             
-            if ($photo && $photo->isValid() && !$photo->hasMoved()) {
-                $newName = $photo->getRandomName();
-                $photo->move(ROOTPATH . 'public/uploads/candidates', $newName);
-                $photoPath = base_url('uploads/candidates/' . $newName);
+            // Pastikan direktori upload exists
+            $uploadPath = ROOTPATH . 'public/uploads/candidates';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+                log_message('debug', 'Created upload directory: ' . $uploadPath);
             }
             
-            // Siapkan data untuk update
-            $data = [
-                'id' => $candidateId,
-                'vision' => $this->request->getPost('vision'),
-                'mission' => $this->request->getPost('mission'),
-                'programs' => $this->request->getPost('programs')
-            ];
-            
-            // Hanya update foto jika ada upload baru
-            if ($photo && $photo->isValid()) {
-                $data['photo'] = $photoPath;
+            $newName = $photo->getRandomName();
+            if ($photo->move($uploadPath, $newName)) {
+                $photoPath = 'uploads/candidates/' . $newName; // Store relative path only
+                $hasNewPhoto = true; // Set flag bahwa ada foto baru yang berhasil di-upload
+                log_message('debug', 'Photo uploaded successfully: ' . $photoPath);
+            } else {
+                log_message('error', 'Failed to move photo file');
             }
-            
-            // Update kandidat
+        } else {
+            log_message('debug', 'No valid photo to upload');
+        }
+        
+        // Siapkan data untuk update
+        $data = [
+            'id' => $candidateId,
+            'vision' => $this->request->getPost('vision'),
+            'mission' => $this->request->getPost('mission'),
+            'programs' => $this->request->getPost('programs')
+        ];
+        
+        // Update foto jika ada upload baru yang berhasil
+        if ($hasNewPhoto) {
+            $data['photo'] = $photoPath;
+            log_message('debug', 'Adding photo to update data: ' . $photoPath);
+        }
+        
+        log_message('debug', 'Update data: ' . json_encode($data));            // Update kandidat
             if (!$candidateModel->save($data)) {
                 return redirect()->to('/candidate-profile')->with('error', 'Gagal memperbarui profil kandidat: ' . implode(', ', $candidateModel->errors()));
             }

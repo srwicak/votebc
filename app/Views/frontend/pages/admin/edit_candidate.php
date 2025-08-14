@@ -67,7 +67,7 @@
                     <label for="photo" class="block text-sm font-medium text-gray-700 mb-1">Foto</label>
                     <div class="flex items-center space-x-4">
                         <div class="w-24 h-24 bg-gray-100 rounded-full overflow-hidden flex items-center justify-center">
-                            <img id="photoPreview" src="<?= $candidateDetails['photo'] ?: base_url('assets/img/user-placeholder.svg') ?>" alt="Preview" class="w-full h-full object-cover">
+                            <img id="photoPreview" src="<?= !empty($candidateDetails['photo']) ? base_url($candidateDetails['photo']) : base_url('assets/img/user-placeholder.svg') ?>" alt="Preview" class="w-full h-full object-cover">
                         </div>
                         <div class="flex-1">
                             <input type="file" id="photo" name="photo" accept="image/*" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">

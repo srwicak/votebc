@@ -345,6 +345,44 @@ class Frontend extends BaseController
         return $this->render('admin/reset_password', $data);
     }
 
+    /**
+     * Admin view candidates by election page
+     *
+     * @param int $electionId Election ID
+     * @return string
+     */
+    public function adminViewCandidates($electionId = null)
+    {
+        if (!$this->isLoggedIn || $this->userData['role'] !== 'admin') {
+            return redirect()->to('/login')->with('error', 'Akses ditolak');
+        }
+
+        if (!$electionId) {
+            return redirect()->to('/admin/elections')->with('error', 'ID pemilihan tidak valid');
+        }
+
+        $electionModel = new \App\Models\ElectionModel();
+        $candidateModel = new \App\Models\CandidateModel();
+        
+        $election = $electionModel->find($electionId);
+        
+        if (!$election) {
+            return redirect()->to('/admin/elections')->with('error', 'Pemilihan tidak ditemukan');
+        }
+
+        // Get all candidates for this election
+        $candidates = $candidateModel->getCandidatesWithDetails($electionId);
+
+        $data = [
+            'title' => 'Daftar Kandidat - ' . $election['title'],
+            'page' => 'admin-view-candidates',
+            'election' => $election,
+            'candidates' => $candidates
+        ];
+
+        return $this->render('frontend/pages/admin/view_candidates', $data);
+    }
+
     public function getDepartments($facultyId)
     {
         // Log the request for debugging

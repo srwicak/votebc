@@ -67,12 +67,19 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <div class="flex space-x-2">
+                                                    <a href="<?= base_url('/admin/elections/' . $election['id'] . '/candidates') ?>"
+                                                       class="inline-flex items-center p-1.5 border border-green-500 text-green-500 hover:bg-green-500 hover:text-white rounded transition-colors"
+                                                       title="Lihat Kandidat">
+                                                        <i class="fas fa-users"></i>
+                                                    </a>
                                                     <a href="<?= base_url('/admin/elections/edit/' . $election['id']) ?>"
-                                                       class="inline-flex items-center p-1.5 border border-primary text-primary hover:bg-primary hover:text-white rounded transition-colors">
+                                                       class="inline-flex items-center p-1.5 border border-primary text-primary hover:bg-primary hover:text-white rounded transition-colors"
+                                                       title="Edit Pemilihan">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                     <button class="inline-flex items-center p-1.5 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors"
-                                                            onclick="deleteElection(<?= $election['id'] ?>)">
+                                                            onclick="deleteElection(<?= $election['id'] ?>)"
+                                                            title="Hapus Pemilihan">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>

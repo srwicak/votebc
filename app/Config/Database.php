@@ -27,9 +27,9 @@ class Database extends Config
     public array $default = [
         'DSN'          => '',
         'hostname'     => 'localhost',
-        'username'     => '',
+        'username'     => 'root',
         'password'     => '',
-        'database'     => '',
+        'database'     => 'votebc',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,
@@ -192,6 +192,28 @@ class Database extends Config
     public function __construct()
     {
         parent::__construct();
+
+        // Load database configuration from environment variables
+        $this->default['hostname'] = env('database.default.hostname', 'localhost');
+        $this->default['username'] = env('database.default.username', 'root');
+        $this->default['password'] = env('database.default.password', '');
+        $this->default['database'] = env('database.default.database', 'votebc');
+        $this->default['DBDriver'] = env('database.default.DBDriver', 'MySQLi');
+        $this->default['DBPrefix'] = env('database.default.DBPrefix', '');
+        $this->default['charset']  = env('database.default.charset', 'utf8mb4');
+        $this->default['DBCollat'] = env('database.default.DBCollat', 'utf8mb4_general_ci');
+        $this->default['port']     = (int) env('database.default.port', 3306);
+        $this->default['DBDebug']  = (ENVIRONMENT !== 'production');
+
+        // Load test database configuration from environment variables
+        $this->tests['hostname'] = env('database.tests.hostname', '127.0.0.1');
+        $this->tests['username'] = env('database.tests.username', '');
+        $this->tests['password'] = env('database.tests.password', '');
+        $this->tests['database'] = env('database.tests.database', ':memory:');
+        $this->tests['DBDriver'] = env('database.tests.DBDriver', 'SQLite3');
+        $this->tests['DBPrefix'] = env('database.tests.DBPrefix', 'db_');
+        $this->tests['charset']  = env('database.tests.charset', 'utf8');
+        $this->tests['port']     = (int) env('database.tests.port', 3306);
 
         // Ensure that we always set the database group to 'tests' if
         // we are currently running an automated test suite, so that

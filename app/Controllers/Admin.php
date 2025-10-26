@@ -1397,4 +1397,273 @@ public function getCandidates($electionId = null)
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
+    /**
+     * Finalize election results
+     * Detects if there's a tie and returns information about it
+     */
+    public function finalizeElection($id)
+    {
+        try {
+            $this->requireRole(['admin']);
+
+            $electionModel = new ElectionModel();
+            $election = $electionModel->find($id);
+
+            if (!$election) {
+                return $this->sendError('Pemilihan tidak ditemukan', 404);
+            }
+
+            // Check if election has ended
+            if (time() < strtotime($election['end_time'])) {
+                return $this->sendError('Pemilihan belum berakhir', 400);
+            }
+
+            // Get vote results
+            $voteModel = new \App\Models\VoteModel();
+            $results = $voteModel->select('candidate_id, COUNT(*) as vote_count')
+                                ->where('election_id', $id)
+                                ->groupBy('candidate_id')
+                                ->orderBy('vote_count', 'DESC')
+                                ->findAll();
+
+            if (empty($results)) {
+                return $this->sendError('Belum ada vote untuk pemilihan ini', 400);
+            }
+
+            // Check for tie
+            $maxVotes = $results[0]['vote_count'];
+            $tiedCandidates = array_filter($results, function($result) use ($maxVotes) {
+                return $result['vote_count'] == $maxVotes;
+            });
+
+            $hasTie = count($tiedCandidates) > 1;
+
+            // Get candidate details for tied candidates
+            $tiedCandidateDetails = [];
+            if ($hasTie) {
+                $candidateModel = new CandidateModel();
+                foreach ($tiedCandidates as $tied) {
+                    $candidate = $candidateModel->getCandidatesWithUser($id, $tied['candidate_id']);
+                    if (!empty($candidate)) {
+                        $tiedCandidateDetails[] = $candidate[0];
+                    }
+                }
+            }
+
+            // Update election status to completed
+            $electionModel->update($id, [
+                'status' => 'completed',
+                'finalized_at' => date('Y-m-d H:i:s')
+            ]);
+
+            return $this->sendResponse([
+                'message' => 'Pemilihan berhasil difinalisasi',
+                'has_tie' => $hasTie,
+                'max_votes' => $maxVotes,
+                'tied_candidates' => $tiedCandidateDetails,
+                'election' => $electionModel->find($id)
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    /**
+     * Create runoff election for tied candidates
+     */
+    public function createRunoffElection($id)
+    {
+        try {
+            $currentUser = $this->requireRole(['admin']);
+
+            $electionModel = new ElectionModel();
+            $election = $electionModel->find($id);
+
+            if (!$election) {
+                return $this->sendError('Pemilihan tidak ditemukan', 404);
+            }
+
+            // Get JSON input with tied candidate IDs
+            $json = $this->request->getJSON(true);
+            if (!$json || empty($json['candidate_ids'])) {
+                return $this->sendError('Candidate IDs harus disertakan', 400);
+            }
+
+            $candidateIds = $json['candidate_ids'];
+
+            // Verify that these candidates actually have tied votes
+            $voteModel = new \App\Models\VoteModel();
+            $results = $voteModel->select('candidate_id, COUNT(*) as vote_count')
+                                ->where('election_id', $id)
+                                ->whereIn('candidate_id', $candidateIds)
+                                ->groupBy('candidate_id')
+                                ->findAll();
+
+            if (count($results) < 2) {
+                return $this->sendError('Minimal 2 kandidat harus disertakan', 400);
+            }
+
+            // Check if all candidates have the same vote count
+            $voteCounts = array_column($results, 'vote_count');
+            if (count(array_unique($voteCounts)) > 1) {
+                return $this->sendError('Kandidat yang dipilih tidak memiliki jumlah suara yang sama', 400);
+            }
+
+            // Get runoff start and end times from input or default to 1 week from now
+            $startTime = isset($json['start_time']) ? $json['start_time'] : date('Y-m-d H:i:s', strtotime('+1 day'));
+            $endTime = isset($json['end_time']) ? $json['end_time'] : date('Y-m-d H:i:s', strtotime('+1 week'));
+
+            // Create new election for runoff
+            $runoffData = [
+                'title' => $election['title'] . ' - Pemilihan Ulang',
+                'description' => 'Pemilihan ulang karena hasil seri dari pemilihan sebelumnya. ' . $election['description'],
+                'level' => $election['level'],
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'status' => 'draft',
+                'created_by' => $currentUser['id'],
+                'parent_election_id' => $id,
+                'is_runoff' => 1
+            ];
+
+            $db = \Config\Database::connect();
+            $db->transBegin();
+
+            try {
+                // Save runoff election
+                if (!$electionModel->save($runoffData)) {
+                    $db->transRollback();
+                    return $this->sendError($electionModel->errors(), 400);
+                }
+
+                $runoffElectionId = $electionModel->getInsertID();
+
+                // Copy eligibility from parent election
+                $eligibilityModel = new \App\Models\EligibilityModel();
+                $parentEligibility = $eligibilityModel->where('election_id', $id)->findAll();
+                
+                foreach ($parentEligibility as $eligibility) {
+                    $eligibilityModel->save([
+                        'election_id' => $runoffElectionId,
+                        'faculty_id' => $eligibility['faculty_id'],
+                        'department_id' => $eligibility['department_id']
+                    ]);
+                }
+
+                // Copy tied candidates to runoff election
+                $candidateModel = new CandidateModel();
+                foreach ($candidateIds as $candidateId) {
+                    $candidate = $candidateModel->find($candidateId);
+                    if ($candidate) {
+                        $candidateModel->save([
+                            'candidate_id' => $candidate['candidate_id'],
+                            'vice_candidate_id' => $candidate['vice_candidate_id'],
+                            'election_id' => $runoffElectionId,
+                            'vision' => $candidate['vision'],
+                            'mission' => $candidate['mission'],
+                            'programs' => $candidate['programs'],
+                            'photo' => $candidate['photo']
+                        ]);
+                    }
+                }
+
+                $db->transCommit();
+
+                $runoffElection = $electionModel->getElectionWithDetails($runoffElectionId);
+
+                return $this->sendResponse([
+                    'message' => 'Pemilihan ulang berhasil dibuat',
+                    'runoff_election' => $runoffElection
+                ], 201);
+
+            } catch (\Exception $e) {
+                $db->transRollback();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    /**
+     * Get election results with tie detection
+     */
+    public function getElectionResults($id)
+    {
+        try {
+            $this->requireRole(['admin']);
+
+            $electionModel = new ElectionModel();
+            $election = $electionModel->find($id);
+
+            if (!$election) {
+                return $this->sendError('Pemilihan tidak ditemukan', 404);
+            }
+
+            // Get vote results
+            $voteModel = new \App\Models\VoteModel();
+            $results = $voteModel->select('candidate_id, COUNT(*) as vote_count')
+                                ->where('election_id', $id)
+                                ->groupBy('candidate_id')
+                                ->orderBy('vote_count', 'DESC')
+                                ->findAll();
+
+            // Get candidate details
+            $candidateModel = new CandidateModel();
+            $detailedResults = [];
+            
+            foreach ($results as $result) {
+                $candidate = $candidateModel->getCandidatesWithUser($id, $result['candidate_id']);
+                if (!empty($candidate)) {
+                    $candidate[0]['vote_count'] = $result['vote_count'];
+                    $detailedResults[] = $candidate[0];
+                }
+            }
+
+            // Check for tie
+            $hasTie = false;
+            $tiedCandidates = [];
+            
+            if (!empty($results)) {
+                $maxVotes = $results[0]['vote_count'];
+                $tiedResults = array_filter($results, function($result) use ($maxVotes) {
+                    return $result['vote_count'] == $maxVotes;
+                });
+                
+                $hasTie = count($tiedResults) > 1;
+                
+                if ($hasTie) {
+                    foreach ($tiedResults as $tied) {
+                        $candidate = $candidateModel->getCandidatesWithUser($id, $tied['candidate_id']);
+                        if (!empty($candidate)) {
+                            $tiedCandidates[] = $candidate[0];
+                        }
+                    }
+                }
+            }
+
+            // Get total votes
+            $totalVotes = $voteModel->where('election_id', $id)->countAllResults();
+
+            // Get eligible voters count
+            $eligibleVoters = $electionModel->getEligibleVoters($id);
+            $eligibleVotersCount = count($eligibleVoters);
+
+            return $this->sendResponse([
+                'election' => $election,
+                'results' => $detailedResults,
+                'total_votes' => $totalVotes,
+                'eligible_voters' => $eligibleVotersCount,
+                'participation_rate' => $eligibleVotersCount > 0 ? round(($totalVotes / $eligibleVotersCount) * 100, 2) : 0,
+                'has_tie' => $hasTie,
+                'tied_candidates' => $tiedCandidates
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 }

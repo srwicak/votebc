@@ -1565,8 +1565,36 @@
                             const tiedCandidates = candidateVotes.filter(c => c.voteCount === maxVotes);
                             
                             if (tiedCandidates.length > 1) {
-                                const tiedIds = tiedCandidates.map(c => c.candidateId).join(', ');
-                                alert(`Akan dibuat pemilihan ulang untuk kandidat dengan ID: ${tiedIds}. Silakan buat pemilihan baru secara manual untuk saat ini dengan hanya memilih kandidat-kandidat tersebut.`);
+                                const tiedIds = tiedCandidates.map(c => c.candidateId);
+                                
+                                // Call API to create runoff election
+                                const electionId = <?= $election['id'] ?>;
+                                fetch('<?= base_url('api/admin/elections') ?>/' + electionId + '/create-runoff', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Bearer <?= session()->get('auth_token') ?>'
+                                    },
+                                    body: JSON.stringify({
+                                        candidate_ids: tiedIds
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.error) {
+                                        alert('Error: ' + data.error);
+                                    } else if (data.data && data.data.runoff_election) {
+                                        alert('Pemilihan ulang berhasil dibuat! ID: ' + data.data.runoff_election.id);
+                                        window.location.href = '<?= base_url('election') ?>/' + data.data.runoff_election.id;
+                                    } else {
+                                        alert('Pemilihan ulang berhasil dibuat!');
+                                        location.reload();
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Terjadi kesalahan: ' + error.message);
+                                });
                                 
                                 // Redirect to election creation page for admin
                                 if (confirm('Apakah Anda ingin dialihkan ke halaman pembuatan pemilihan baru?')) {
@@ -1584,22 +1612,35 @@
                         if (confirm('Apakah Anda yakin ingin memfinalisasi hasil pemilihan ini?')) {
                             // Make API call to finalize results
                             const electionId = <?= $election['id'] ?>;
-                            fetch('<?= base_url('api/admin/elections') ?>/' + electionId, {
-                                method: 'PUT',
+                            fetch('<?= base_url('api/admin/elections') ?>/' + electionId + '/finalize', {
+                                method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'Authorization': 'Bearer <?= session()->get('auth_token') ?>'
-                                },
-                                body: JSON.stringify({
-                                    status: 'completed'
-                                })
+                                }
                             })
                             .then(response => response.json())
                             .then(data => {
                                 if (data.error) {
                                     alert('Error: ' + data.error);
-                                } else {
-                                    alert('Hasil pemilihan telah difinalisasi.');
+                                } else if (data.data) {
+                                    let message = 'Hasil pemilihan telah difinalisasi.';
+                                    
+                                    if (data.data.has_tie) {
+                                        message += '\\n\\nPeringatan: Terdapat hasil seri!\\n';
+                                        message += `Jumlah suara tertinggi: ${data.data.max_votes}\\n`;
+                                        message += 'Kandidat yang seri:\\n';
+                                        data.data.tied_candidates.forEach((candidate, index) => {
+                                            message += `${index + 1}. ${candidate.candidate_name}`;
+                                            if (candidate.vice_candidate_name) {
+                                                message += ` & ${candidate.vice_candidate_name}`;
+                                            }
+                                            message += '\\n';
+                                        });
+                                        message += '\\nAnda dapat membuat pemilihan ulang menggunakan tombol "Jadwalkan Pemilihan Ulang".';
+                                    }
+                                    
+                                    alert(message);
                                     location.reload();
                                 }
                             })

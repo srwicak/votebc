@@ -66,6 +66,11 @@ $routes->group('api/admin', ['filter' => 'auth'], function($routes) {
     $routes->put('elections/(:num)', 'Admin::updateElection/$1');
     $routes->delete('elections/(:num)', 'Admin::deleteElection/$1');
     
+    // Election Results & Finalization
+    $routes->get('elections/(:num)/results', 'Admin::getElectionResults/$1');
+    $routes->post('elections/(:num)/finalize', 'Admin::finalizeElection/$1');
+    $routes->post('elections/(:num)/create-runoff', 'Admin::createRunoffElection/$1');
+    
     // Candidate Management
     $routes->post('candidates', 'Admin::addCandidate');
     $routes->post('candidates/paired', 'Admin::addPairedCandidates');
@@ -102,6 +107,7 @@ $routes->get('admin/dashboard', 'Frontend::dashboard');
 $routes->get('admin/elections', 'Frontend::adminElections');
 $routes->get('admin/elections/create', 'Frontend::createElection');
 $routes->get('admin/elections/edit/(:num)', 'Frontend::editElection/$1');
+$routes->get('admin/elections/(:num)/candidates', 'Frontend::adminViewCandidates/$1');
 $routes->get('admin/election/(:num)/candidates/create', 'Admin::createCandidate/$1');
 $routes->post('admin/election/(:num)/candidates/store', 'Admin::storeCandidate/$1');
 $routes->get('admin/users', 'Frontend::adminUsers');

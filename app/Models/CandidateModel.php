@@ -54,6 +54,41 @@ class CandidateModel extends Model
                    ->where('candidates.id', $candidateRowId)
                    ->first();
     }
+
+    /**
+     * Get all candidates with full details for an election
+     *
+     * @param int $electionId
+     * @return array
+     */
+    public function getCandidatesWithDetails($electionId)
+    {
+        return $this->select('candidates.id,
+                            candidates.candidate_id,
+                            candidates.vice_candidate_id,
+                            candidates.election_id,
+                            candidates.photo,
+                            candidates.vision,
+                            candidates.mission,
+                            candidates.programs,
+                            candidate.name as user_name,
+                            candidate.nim as user_nim,
+                            candidate_department.name as department_name,
+                            candidate_faculty.name as faculty_name,
+                            vice_candidate.name as running_mate_name,
+                            vice_candidate.nim as running_mate_nim,
+                            vice_candidate_department.name as running_mate_department,
+                            vice_candidate_faculty.name as running_mate_faculty')
+                   ->join('users as candidate', 'candidate.id = candidates.candidate_id')
+                   ->join('departments as candidate_department', 'candidate_department.id = candidate.department_id', 'left')
+                   ->join('faculties as candidate_faculty', 'candidate_faculty.id = candidate_department.faculty_id', 'left')
+                   ->join('users as vice_candidate', 'vice_candidate.id = candidates.vice_candidate_id', 'left')
+                   ->join('departments as vice_candidate_department', 'vice_candidate_department.id = vice_candidate.department_id', 'left')
+                   ->join('faculties as vice_candidate_faculty', 'vice_candidate_faculty.id = vice_candidate_department.faculty_id', 'left')
+                   ->where('candidates.election_id', $electionId)
+                   ->orderBy('candidates.id', 'ASC')
+                   ->findAll();
+    }
     
     /**
      * Get candidate pair with full details for both primary candidate and vice candidate

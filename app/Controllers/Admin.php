@@ -176,7 +176,7 @@ class Admin extends BaseController{
         if ($errors) {
             return redirect()->back()->with('error', implode(', ', $errors));
         }
-        return redirect()->to("/admin/elections/$electionId")->with('success', 'Kandidat berhasil ditambahkan');
+        return redirect()->to("/admin/elections/$electionId/candidates")->with('success', 'Kandidat berhasil ditambahkan');
     }
 
     public function getUsers()

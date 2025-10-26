@@ -7,8 +7,8 @@
 <!-- Global JavaScript Configuration -->
 <script>
     // Global JavaScript Configuration
-    const BASE_URL = 'http://localhost:8080';
-    const API_BASE_URL = 'http://localhost:8080/api';
+    const BASE_URL = '<?= base_url() ?>';
+    const API_BASE_URL = '<?= base_url('/api') ?>';
     const AUTH_TOKEN = '<?= session()->get('auth_token') ?>';
     
     // Debug info (hapus di production)

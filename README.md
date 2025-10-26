@@ -66,3 +66,30 @@ Additionally, make sure that the following extensions are enabled in your PHP:
 - json (enabled by default - don't turn it off)
 - [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
 - [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+
+## Troubleshooting
+
+### Duplicate entry for key `votes.votes_voter_id_idx` when voting
+
+If you see an error like:
+
+"Duplicate entry 'X' for key 'votes.votes_voter_id_idx'",
+
+it means your database has a UNIQUE index on `votes.voter_id`, which incorrectly prevents a user from voting in more than one election. The intended rule is: a user may vote once per election (unique on `(election_id, voter_id)`), while single-column indexes should be non-unique for performance only.
+
+Fix:
+
+1) Run the migrations to drop the wrong unique index and recreate proper indexes:
+
+```
+php spark migrate
+```
+
+What this does:
+- Drops any UNIQUE single-column indexes on `votes` (including `votes_voter_id_idx`).
+- Recreates them as non-unique indexes.
+- Ensures a composite UNIQUE index on `(election_id, voter_id)` exists.
+
+Notes:
+- If you run multiple environments, run the migration in each one.
+- Application logic already checks duplicates per election via `VoteModel::hasVoted($electionId, $voterId)`.

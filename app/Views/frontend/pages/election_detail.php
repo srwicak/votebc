@@ -1390,7 +1390,7 @@
                         } else {
                             alert('Error result: ' + result.error);
                         }
-                    } else {
+                    } else if (result.data) {
                         console.log('Vote success:', result);
                         
                         // Show success modal with blockchain details
@@ -1441,6 +1441,18 @@
                             button.innerHTML = '<i class="fas fa-check mr-1"></i> Sudah Voting';
                             button.removeAttribute('onclick');
                         });
+                    } else {
+                        // Unexpected response structure
+                        console.error('Unexpected response structure:', result);
+                        alert('Terjadi kesalahan: Response tidak sesuai format yang diharapkan. Response: ' + JSON.stringify(result));
+                        
+                        // Hide confirmation modal
+                        document.getElementById('voteConfirmationModal').classList.add('hidden');
+                        
+                        // Reset button state
+                        document.getElementById('confirmVoteButton').innerHTML = 'Ya, Saya Yakin';
+                        document.getElementById('confirmVoteButton').disabled = false;
+                        document.getElementById('cancelVoteButton').disabled = false;
                     }
                 })
                 .catch(error => {

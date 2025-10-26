@@ -10,9 +10,11 @@ class AddVotesIndexes extends Migration
     {
         // Add indexes to improve query performance
         // Check if indexes exist first to avoid errors
-        $this->forge->addKey('election_id', false, true, 'votes_election_id_idx');
-        $this->forge->addKey('candidate_id', false, true, 'votes_candidate_id_idx');
-        $this->forge->addKey('voter_id', false, true, 'votes_voter_id_idx');
+        // NOTE: These must be NON-UNIQUE indexes.
+        // The UNIQUE constraint for voting is handled by a composite unique (election_id, voter_id)
+        $this->forge->addKey('election_id', false, false, 'votes_election_id_idx');
+        $this->forge->addKey('candidate_id', false, false, 'votes_candidate_id_idx');
+        $this->forge->addKey('voter_id', false, false, 'votes_voter_id_idx');
         
         // Apply the indexes to the votes table
         $this->forge->processIndexes('votes');

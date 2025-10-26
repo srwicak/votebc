@@ -120,12 +120,7 @@ class Vote extends BaseController
                         'updated_at' => date('Y-m-d H:i:s')
                     ]);
                     
-                    return $this->sendResponse([
-                        'message' => 'Vote dicatat tetapi transaksi blockchain gagal: ' . ($blockchainResult['error'] ?? 'Unknown error'),
-                        'vote_id' => $voteId,
-                        'status' => 'failed',
-                        'error' => $blockchainResult['error'] ?? 'Unknown blockchain error',
-                    ], 500);
+                    return $this->sendError('Vote dicatat tetapi transaksi blockchain gagal: ' . ($blockchainResult['error'] ?? 'Unknown error'), 500);
                 }
                 
                 if ($blockchainResult['status'] === 'success' || $blockchainResult['status'] === 'pending') {
@@ -190,7 +185,9 @@ class Vote extends BaseController
             // Log exception
             log_message('error', 'Vote exception: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
             
-            return $this->sendError('Terjadi kesalahan saat memproses vote: ' . $e->getMessage(), $e->getCode() ?: 500);
+            // Get valid HTTP status code (default to 500 for server errors)
+            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            return $this->sendError('Terjadi kesalahan saat memproses vote: ' . $e->getMessage(), $statusCode);
         }
     }
 
@@ -205,7 +202,9 @@ class Vote extends BaseController
             return $this->sendResponse(['has_voted' => $hasVoted]);
 
         } catch (\Exception $e) {
-            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+            // Get valid HTTP status code (default to 500 for server errors)
+            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            return $this->sendError($e->getMessage(), $statusCode);
         }
     }
     
@@ -390,7 +389,9 @@ class Vote extends BaseController
             
         } catch (\Exception $e) {
             log_message('error', 'Vote verification exception: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
-            return $this->sendError('Terjadi kesalahan saat memverifikasi vote: ' . $e->getMessage(), $e->getCode() ?: 500);
+            // Get valid HTTP status code (default to 500 for server errors)
+            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            return $this->sendError('Terjadi kesalahan saat memverifikasi vote: ' . $e->getMessage(), $statusCode);
         }
     }
     
@@ -457,7 +458,9 @@ class Vote extends BaseController
             
         } catch (\Exception $e) {
             log_message('error', 'Get election votes exception: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
-            return $this->sendError('Terjadi kesalahan saat mengambil data votes: ' . $e->getMessage(), $e->getCode() ?: 500);
+            // Get valid HTTP status code (default to 500 for server errors)
+            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            return $this->sendError('Terjadi kesalahan saat mengambil data votes: ' . $e->getMessage(), $statusCode);
         }
     }
     
@@ -487,7 +490,9 @@ class Vote extends BaseController
             return $this->sendResponse($status);
         } catch (\Exception $e) {
             log_message('error', 'Blockchain status exception: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
-            return $this->sendError('Terjadi kesalahan saat memeriksa status blockchain: ' . $e->getMessage(), $e->getCode() ?: 500);
+            // Get valid HTTP status code (default to 500 for server errors)
+            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            return $this->sendError('Terjadi kesalahan saat memeriksa status blockchain: ' . $e->getMessage(), $statusCode);
         }
     }
     
@@ -514,7 +519,9 @@ class Vote extends BaseController
             ]);
         } catch (\Exception $e) {
             log_message('error', 'Blockchain test exception: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
-            return $this->sendError('Terjadi kesalahan saat menguji transaksi blockchain: ' . $e->getMessage(), $e->getCode() ?: 500);
+            // Get valid HTTP status code (default to 500 for server errors)
+            $statusCode = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            return $this->sendError('Terjadi kesalahan saat menguji transaksi blockchain: ' . $e->getMessage(), $statusCode);
         }
     }
 }
